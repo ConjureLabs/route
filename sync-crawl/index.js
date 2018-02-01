@@ -5,7 +5,6 @@ const path = require('path');
 const sortInsensitive = require('utils/Array/sort-insensitive');
 
 const validVerbs = ['all', 'get', 'post', 'put', 'patch', 'delete'];
-const startingUnderscore = /^_/;
 const startingDollarSign = /^\$/;
 const jsFileExt = /\.js$/;
 
@@ -17,9 +16,8 @@ function syncCrawlRoutesDir(dirpath, uriPathTokens) {
 
   const base = path.parse(dirpath).base;
 
-  // root directories with a leading _ will still build out the route tree,
-  // but the directory itself will not be included in the route path
-  if (uriPathTokens.length > 0 || startingUnderscore.test(base) === false) {
+  // first directory is not added to the uri path, for the express routing
+  if (uriPathTokens.length) {
     // adding to the tokens of the express route, based on the current directory being crawled
     // a folder starting with a $ will be considered a req param
     // (The : used in express does not work well in directory naming, and will mess up directory searching)

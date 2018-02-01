@@ -20,7 +20,7 @@ route.push(async (req, res) => {
 module.exports = route;
 ```
 
-### Routes Setup
+### Routes Structure
 
 Routes need to be within a directory.
 
@@ -40,6 +40,40 @@ Let's say your repo, `api` has a `routes` directory.
 ```
 
 This is a simple example with only one root resource (`account`).
+
+You can get the Express router object, for any individual route.
+
+```js
+const accountCreation = require('./routes/account/$accountId/post.js');
+const router = accountCreation.expressRouter('post', '/account/:accountId');
+```
+
+This is useful if you want to handle things directly, but most likely you want to get _all the routes_ within the root routes directory.
+
+**The crawl logic is uses `sync` logic.** The idea is that it should be used at initial setup of a server, where a blip of sync logic is acceptable, but typically not after that.
+
+```js
+const crawl = require('route/sync-crawl');
+const path = require('path');
+const routesDir = path.resolve(__dirname, 'routes');
+
+const apiRoutes = crawl(routesDir);
+
+// now you can simply pass all the routes into Express
+server.use(apiRoutes);
+
+/*
+  routes now available:
+    - GET     /account
+    - DELETE  /account/:accountId
+    - GET     /account/:accountId
+    - PATCH   /account/:accountId
+    - POST    /account/:accountId
+    - PUT     /account/:accountId
+ */
+```
+
+Note that the initial directory (in this case `./routes`) does not add the Express route paths.
 
 ### Options
 
