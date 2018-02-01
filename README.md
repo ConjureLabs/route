@@ -14,10 +14,44 @@ const Route = require('route');
 const route = new Route();
 
 route.push(async (req, res) => {
-  // either res.send or return
+  return res.send('hello world');
 });
 
 module.exports = route;
+```
+
+### Async vs Callbacks
+
+You can use either. Callbacks are pretty straight-forward.
+
+```js
+route.push((req, res, next) => {
+  // res.send() or next()
+});
+```
+
+With `async`, if you do not `return`, then it's equivalent to calling `next()` in a callback route.
+
+```js
+route.push(async (req, res) => {
+  return res.send('hello world');
+});
+```
+
+```js
+route.push(async (req, res) => {
+  // no return, will imply next()
+});
+```
+
+The following will result in a headers re-sent error. You **must** `return` with `res.send()` in an `async` handler. If you do not `return` it will imply a `res.send()` and _then_ `next()`, which will likely hit your 404 handler, and result in a double response.
+
+```js
+// do not do this
+route.push(async (req, res) => {
+  res.send('improper response');
+  // will call next(), causing a bug
+});
 ```
 
 ### Routes Structure
