@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const sortInsensitive = require('utils/Array/sort-insensitive');
 
+const validVerbs = ['all', 'get', 'post', 'put', 'patch', 'delete'];
 const startingUnderscore = /^_/;
 const startingDollarSign = /^\$/;
 const jsFileExt = /\.js$/;
@@ -61,3 +62,5 @@ function syncCrawlRoutesDir(dirpath, uriPathTokens) {
   
   return routes;
 }
+
+module.exports = syncCrawlRoutesDir;
