@@ -1,0 +1,24 @@
+{
+  "name": "route",
+  "version": "1.0.0",
+  "description": "Class to help with working with Express routes",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/ConjureLabs/route.git"
+  },
+  "keywords": [
+    "express",
+    "node",
+    "routes"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ConjureLabs/route/issues"
+  },
+  "homepage": "https://github.com/ConjureLabs/route#readme"
+}
