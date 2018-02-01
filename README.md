@@ -20,6 +20,12 @@ route.push(async (req, res) => {
 module.exports = route;
 ```
 
+### Install
+
+```sh
+npm install --save route@ConjureLabs/route
+```
+
 ### Async vs Callbacks
 
 You can use either. Callbacks are pretty straight-forward.
