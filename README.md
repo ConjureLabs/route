@@ -20,6 +20,27 @@ route.push(async (req, res) => {
 module.exports = route;
 ```
 
+### Routes Setup
+
+Routes need to be within a directory.
+
+Let's say your repo, `api` has a `routes` directory.
+
+```
+.
+└── routes
+    └── account
+        ├── $accountId
+        │   ├── delete.js
+        │   ├── get.js
+        │   ├── patch.js
+        │   ├── post.js
+        │   └── put.js
+        └── get.js
+```
+
+This is a simple example with only one root resource (`account`).
+
 ### Options
 
 #### Require Authentication
@@ -109,7 +130,7 @@ Alternatively, you can install the API repo as a module into your web repo (if y
 ```js
 // this is assumed to be within a parent repo
 route.push(async (req, res) => {
-  const getOrgsApi = require('api-repo/api/orgs/get.js');
+  const getOrgsApi = require('api-repo/routes/orgs/get.js');
 
   const result = await getOrgsApi.call(req, { arg: 'val' });
 
@@ -124,7 +145,7 @@ If a route you are trying to call directly has req params, you can set them via 
 ```js
 // this is assumed to be within a parent repo
 route.push(async (req, res) => {
-  const getOrgInfoApi = require('api-repo/api/org/$orgName/info/get.js');
+  const getOrgInfoApi = require('api-repo/routes/org/$orgName/info/get.js');
 
   const result = await getOrgInfoApi.call(req, {}, { orgName: 'myOrg' });
 
