@@ -20,5 +20,11 @@
   "bugs": {
     "url": "https://github.com/ConjureLabs/route/issues"
   },
-  "homepage": "https://github.com/ConjureLabs/route#readme"
+  "homepage": "https://github.com/ConjureLabs/route#readme",
+  "dependencies": {
+    "cors": "^2.8.4",
+    "err": "github:ConjureLabs/err",
+    "express": "^4.16.2",
+    "utils": "github:ConjureLabs/utils"
+  }
 }
