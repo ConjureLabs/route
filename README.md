@@ -109,6 +109,24 @@ route.push(async (req, res) => {
 
 This can be used to force 404s.
 
+#### CORS
+
+If you need to use cross-origin routes, you can pass `cors` in the initial config. Any options will be passed on to the [Express cors module](https://github.com/expressjs/cors#readme), so check out their readme for any further details.
+
+```js
+const route = new Route({
+  requireAuthentication: true,
+  cors: {
+    credentials: true,
+    methods: ['GET', 'PUT', 'PATCH', 'POST', 'DELETE', 'HEAD', 'OPTIONS'],
+    optionsSuccessStatus: 200,
+    origin: [
+      config.web.origin
+    ]
+  }
+});
+```
+
 ### Child Overrides
 
 #### Modifying route before passing to Express
