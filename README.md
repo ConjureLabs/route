@@ -127,6 +127,14 @@ const route = new Route({
 });
 ```
 
+Note that this is default behavoir. If you want to override that, [see how to below](https://github.com/ConjureLabs/route#changing-default-options). You can make a page public via:
+
+```js
+const route = new Route({
+  requireAuthentication: false
+});
+```
+
 #### Blacklisted Env Vars
 
 If you want to block a route from being using when an ENV var is set, you can do so like:
@@ -189,7 +197,6 @@ If you need to use cross-origin routes, you can pass `cors` in the initial confi
 
 ```js
 const route = new Route({
-  requireAuthentication: true,
   cors: {
     credentials: true,
     methods: ['GET', 'PUT', 'PATCH', 'POST', 'DELETE', 'HEAD', 'OPTIONS'],
