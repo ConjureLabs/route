@@ -9,7 +9,7 @@ const startingDollarSign = /^\$/;
 const jsFileExt = /\.js$/;
 
 function syncCrawlRoutesDir(dirpath, uriPathTokens) {
-  if (arguments.length === 2) {
+  if (arguments.length === 1) {
     // at first call, only a directory path is given
     uriPathTokens = [];
   }
