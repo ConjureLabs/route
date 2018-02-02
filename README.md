@@ -201,6 +201,18 @@ const route = new Route({
 });
 ```
 
+#### Changing Default Options
+
+If you have something like CORS, and want every endpoint to have those options, instead of sending them to each constructor, you can modify the default `Route` options before initializing any routes.
+
+```js
+Route.defaultOptions = {
+  cors: {}
+};
+```
+
+This example will override _only_ the `cors` attribute in the default options, leaving others unchanged.
+
 ### Child Overrides
 
 #### Modifying route before passing to Express

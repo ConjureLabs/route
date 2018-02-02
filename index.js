@@ -11,31 +11,42 @@ const resTerminalMethods = [
   'redirect', 'render', 'end'
 ];
 
+const defaultOptions = {
+  blacklistedEnv: {},
+  requireAuthentication: false,
+  wildcard: false,
+  skippedHandler: null,
+  cors: null
+};
+
 class Route extends Array {
   constructor(options = {}) {
     super();
 
-    this.suppressedRoutes = false;
+    const optionsUsed = Object.assign({}, defaultOptions, options);
 
-    options.blacklistedEnv = options.blacklistedEnv || {};
-
-    this.requireAuthentication = options.requireAuthentication === true;
-    this.wildcardRoute = options.wildcard === true;
-
-    this.skippedHandler = options.skippedHandler || null;
-
-    this.cors = options.cors || null;
+    this.requireAuthentication = optionsUsed.requireAuthentication;
+    this.wildcardRoute = optionsUsed.wildcard;
+    this.skippedHandler = optionsUsed.skippedHandler;
+    this.cors = optionsUsed.cors;
 
     this.call = this.call.bind(this);
 
-    for (let key in options.blacklistedEnv) {
+    this.suppressedRoutes = false;
+    for (let key in optionsUsed.blacklistedEnv) {
       const envVar = process.env[key];
-      const blacklistedArray = options.blacklistedEnv[key];
+      const blacklistedArray = optionsUsed.blacklistedEnv[key];
 
       if (envVar && blacklistedArray.includes(envVar)) {
         this.suppressedRoutes = true;
         break;
       }
+    }
+  }
+
+  static set defaultOptions(options = {}) {
+    for (let key in options) {
+      defaultOptions[key] = options[key];
     }
   }
 
