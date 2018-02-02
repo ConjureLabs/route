@@ -25,7 +25,6 @@ function syncCrawlRoutesDir(rootpath) {
     }
 
     const list = fs.readdirSync(dirpath);
-    console.log(dirpath, list);
     const routes = [];
     const files = [];
 
