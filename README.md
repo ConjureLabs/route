@@ -6,7 +6,7 @@ Instead of creating a hodgepodge of oddly organized files, containing an assortm
 
 Express route handlers are pushed into a `Route` instance. `Route` is a class that extends `Array`.
 
-The route verbs will be gathered from the filenames (like `get.js` or `patch.js`).
+The route verbs will be gathered from the filenames (like `get.js` or `patch.js`). You can also use `all.js` which will match any verb to the route.
 
 ```js
 const Route = require('route');
