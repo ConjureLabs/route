@@ -76,7 +76,7 @@ Let's say your repo, `api` has a `routes` directory.
         │   ├── patch.js
         │   ├── post.js
         │   └── put.js
-        └── get.js
+        └── all.js
 ```
 
 This is a simple example with only one root resource (`account`).
@@ -104,7 +104,7 @@ server.use(apiRoutes);
 
 /*
   routes now available:
-    - GET     /account
+    - *       /account
     - DELETE  /account/:accountId
     - GET     /account/:accountId
     - PATCH   /account/:accountId
