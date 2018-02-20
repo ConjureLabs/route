@@ -127,7 +127,7 @@ const route = new Route({
 });
 ```
 
-Note that this is default behavoir. If you want to override that, [see how to below](https://github.com/ConjureLabs/route#changing-default-options). You can make a page public via:
+Note that the default behavior is to not restrict access. But if you want to be explicit, you can set `requireAuthentication` to `false`:
 
 ```js
 const route = new Route({
