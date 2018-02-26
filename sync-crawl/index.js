@@ -53,7 +53,7 @@ function syncCrawlRoutesDir(rootpath) {
       }
     }
 
-    for (let i = 0; i < delayedDirectories; i++) {
+    for (let i = 0; i < delayedDirectories.length; i++) {
       const subdirRoutes = getRoutes(path.resolve(dirpath, delayedDirectories[i]), uriPathTokens.slice());
 
       for (let j = 0; j < subdirRoutes.length; j++) {
