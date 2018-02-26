@@ -25,6 +25,7 @@ function syncCrawlRoutesDir(rootpath) {
     }
 
     const list = fs.readdirSync(dirpath);
+    const delayedDirectories = [];
     const routes = [];
     const files = [];
 
@@ -39,11 +40,24 @@ function syncCrawlRoutesDir(rootpath) {
       }
 
       if (stat.isDirectory()) {
+        if (startingDollarSign.test(list[i])) {
+          delayedDirectories.push(list[i]);
+          continue;
+        }
+
         const subdirRoutes = getRoutes(path.resolve(dirpath, list[i]), uriPathTokens.slice());
 
         for (let j = 0; j < subdirRoutes.length; j++) {
           routes.push(subdirRoutes[j]);
         }
+      }
+    }
+
+    for (let i = 0; i < delayedDirectories; i++) {
+      const subdirRoutes = getRoutes(path.resolve(dirpath, delayedDirectories[i]), uriPathTokens.slice());
+
+      for (let j = 0; j < subdirRoutes.length; j++) {
+        routes.push(subdirRoutes[j]);
       }
     }
 
