@@ -6,7 +6,7 @@ Instead of creating a hodgepodge of oddly organized files, containing an assortm
 
 Express route handlers are pushed into a `Route` instance. `Route` is a class that extends `Array`.
 
-The route verbs will be gathered from the filenames (like `get.js` or `patch.js`).
+The route verbs will be gathered from the filenames (like `get.js` or `patch.js`). You can also use `all.js` which will match any verb to the route.
 
 ```js
 const Route = require('route');
@@ -76,7 +76,7 @@ Let's say your repo, `api` has a `routes` directory.
         │   ├── patch.js
         │   ├── post.js
         │   └── put.js
-        └── get.js
+        └── all.js
 ```
 
 This is a simple example with only one root resource (`account`).
@@ -104,7 +104,7 @@ server.use(apiRoutes);
 
 /*
   routes now available:
-    - GET     /account
+    - *       /account
     - DELETE  /account/:accountId
     - GET     /account/:accountId
     - PATCH   /account/:accountId
@@ -127,7 +127,7 @@ const route = new Route({
 });
 ```
 
-Note that this is default behavoir. If you want to override that, [see how to below](https://github.com/ConjureLabs/route#changing-default-options). You can make a page public via:
+Note that the default behavior is to not restrict access. But if you want to be explicit, you can set `requireAuthentication` to `false`:
 
 ```js
 const route = new Route({
