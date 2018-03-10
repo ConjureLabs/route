@@ -62,7 +62,7 @@ The following will result in a headers re-sent error. You **must** `return` with
 // do not do this
 route.push(async (req, res) => {
   res.send('improper response')
-  // will call next(), causing a bug
+  // will call next(), potentially causing a bug
 })
 ```
 
