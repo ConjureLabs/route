@@ -1,5 +1,5 @@
 const cors = require('cors');
-const { PermissionsError, ContentError } = require('err');
+const { PermissionsError, ContentError } = require('@conjurelabs/err');
 
 const requireAuthenticationWrapper = Symbol('Require Auth Wrapper');
 const wrapWithExpressNext = Symbol('Wrap async handlers with express next()');
