@@ -23,7 +23,13 @@ module.exports = route
 ### Install
 
 ```sh
-npm install --save route@ConjureLabs/route
+npm install --save @conjurelabs/route
+```
+
+or
+
+```sh
+yarn add @conjurelabs/route
 ```
 
 ### Async vs Callbacks
