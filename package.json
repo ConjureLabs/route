@@ -1,32 +1,28 @@
 {
-  "name": "route",
-  "version": "1.0.0",
-  "description": "Class to help with working with Express routes",
+  "name": "@conjurelabs/route",
+  "version": "0.0.1",
+  "description": "Express routes made easy",
   "main": "index.js",
   "scripts": {
     "lint": "bash ./bash/lint.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/ConjureLabs/route.git"
   },
   "keywords": [
     "express",
     "node",
     "routes"
   ],
-  "author": "",
+  "repository": "ConjureLabs/route",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/ConjureLabs/route/issues"
-  },
+  "bugs": "https://github.com/ConjureLabs/route/issues",
   "homepage": "https://github.com/ConjureLabs/route#readme",
   "dependencies": {
     "cors": "^2.8.4",
     "err": "github:ConjureLabs/err",
-    "express": "^4.16.2",
     "utils": "github:ConjureLabs/utils"
+  },
+  "peerDependencies": {
+    "express": ">=4"
   },
   "devDependencies": {
     "babel-eslint": "8.0.1",
