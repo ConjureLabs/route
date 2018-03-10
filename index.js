@@ -23,7 +23,10 @@ class Route extends Array {
   constructor(options = {}) {
     super()
 
-    const optionsUsed = Object.assign({}, defaultOptions, options)
+    const optionsUsed = {
+      ...defaultOptions,
+      ...options
+    }
 
     this.requireAuthentication = optionsUsed.requireAuthentication
     this.wildcardRoute = optionsUsed.wildcard
@@ -151,12 +154,12 @@ class Route extends Array {
   }
 
   async call(req, args = {}, params = {}) {
-    req = Object.assign({}, req, {
+    req = {
+      ...req,
       body: args,
-      query: args
-    }, {
+      query: args,
       params
-    })
+    }
 
     const tasks = [].concat(this)
 
