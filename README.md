@@ -66,6 +66,20 @@ route.push(async (req, res) => {
 })
 ```
 
+If, in an async route, you need to call `next(err)`, you can do so in two ways:
+
+```js
+// you can still access `next`, just make sure you `return`
+route.push(async (req, res, next) => {
+  next(err)
+})
+
+// or you can throw
+route.push(async (req, res) => {
+  throw err // will pass `err` to `next`
+})
+```
+
 ### Routes Structure
 
 Routes need to be within a directory.
