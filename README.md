@@ -9,15 +9,15 @@ Express route handlers are pushed into a `Route` instance. `Route` is a class th
 The route verbs will be gathered from the filenames (like `get.js` or `patch.js`). You can also use `all.js` which will match any verb to the route.
 
 ```js
-const Route = require('route');
+const Route = require('@conjurelabs/route')
 
-const route = new Route();
+const route = new Route()
 
 route.push(async (req, res) => {
-  return res.send('hello world');
-});
+  return res.send('hello world')
+})
 
-module.exports = route;
+module.exports = route
 ```
 
 ### Install
@@ -33,21 +33,21 @@ You can use either. Callbacks are pretty straight-forward.
 ```js
 route.push((req, res, next) => {
   // res.send() or next()
-});
+})
 ```
 
 With `async`, if you do not `return`, then it's equivalent to calling `next()` in a callback route.
 
 ```js
 route.push(async (req, res) => {
-  return res.send('hello world');
-});
+  return res.send('hello world')
+})
 ```
 
 ```js
 route.push(async (req, res) => {
   // no return, will imply next()
-});
+})
 ```
 
 The following will result in a headers re-sent error. You **must** `return` with `res.send()` in an `async` handler. If you do not `return` it will imply a `res.send()` and _then_ `next()`, which will likely hit your 404 handler, and result in a double response.
@@ -55,9 +55,9 @@ The following will result in a headers re-sent error. You **must** `return` with
 ```js
 // do not do this
 route.push(async (req, res) => {
-  res.send('improper response');
+  res.send('improper response')
   // will call next(), causing a bug
-});
+})
 ```
 
 ### Routes Structure
@@ -84,8 +84,8 @@ This is a simple example with only one root resource (`account`).
 You can get the Express router object, for any individual route.
 
 ```js
-const accountCreation = require('./routes/account/$accountId/post.js');
-const router = accountCreation.expressRouter('post', '/account/:accountId');
+const accountCreation = require('./routes/account/$accountId/post.js')
+const router = accountCreation.expressRouter('post', '/account/:accountId')
 ```
 
 This is useful if you want to handle things directly, but most likely you want to get _all the routes_ within the root routes directory.
@@ -93,14 +93,14 @@ This is useful if you want to handle things directly, but most likely you want t
 **The crawl logic is uses `sync` logic.** The idea is that it should be used at initial setup of a server, where a blip of sync logic is acceptable, but typically not after that.
 
 ```js
-const crawl = require('route/sync-crawl');
-const path = require('path');
-const routesDir = path.resolve(__dirname, 'routes');
+const crawl = require('@conjurelabs/route/sync-crawl')
+const path = require('path')
+const routesDir = path.resolve(__dirname, 'routes')
 
-const apiRoutes = crawl(routesDir);
+const apiRoutes = crawl(routesDir)
 
 // now you can simply pass all the routes into Express
-server.use(apiRoutes);
+server.use(apiRoutes)
 
 /*
   routes now available:
@@ -124,7 +124,7 @@ If you want a route to only be accessible if the user is authenticated (based on
 ```js
 const route = new Route({
   requireAuthentication: true
-});
+})
 ```
 
 Note that the default behavior is to not restrict access. But if you want to be explicit, you can set `requireAuthentication` to `false`:
@@ -132,7 +132,7 @@ Note that the default behavior is to not restrict access. But if you want to be 
 ```js
 const route = new Route({
   requireAuthentication: false
-});
+})
 ```
 
 #### Blacklisted Env Vars
@@ -144,13 +144,13 @@ const route = new Route({
   blacklistedEnv: {
     NODE_ENV: ['test', 'production']
   }
-});
+})
 
 route.push(async (req, res) => {
   // this will not be accessible if process.env.NODE_ENV is 'test' or 'production'
-});
+})
 
-module.exports = route;
+module.exports = route
 ```
 
 This is useful for setting up debug endpoints that should only be used in development.
@@ -162,13 +162,13 @@ If you want to catch-all (e.g. `/some/route/*` instead of `/some/route`) then yo
 ```js
 const route = new Route({
   wildcard: true
-});
+})
 
 route.push(async (req, res) => {
   // ...
-});
+})
 
-module.exports = route;
+module.exports = route
 ```
 
 #### Skipped Handler
@@ -181,12 +181,12 @@ const route = new Route({
   skippedHandler: async (req, res) => {
     // ...
   }
-});
+})
 
 route.push(async (req, res) => {
   // if this route is not executed, because the user is not authed,
   // then `skippedHandler` will be called instead of this or any later handlers
-});
+})
 ```
 
 This can be used to force 404s.
@@ -205,7 +205,7 @@ const route = new Route({
       config.web.origin
     ]
   }
-});
+})
 ```
 
 #### Changing Default Options
@@ -215,7 +215,7 @@ If you have something like CORS, and want every endpoint to have those options, 
 ```js
 Route.defaultOptions = {
   cors: {}
-};
+}
 ```
 
 This example will override _only_ the `cors` attribute in the default options, leaving others unchanged.
@@ -241,12 +241,12 @@ Alternatively, you can install the API repo as a module into your web repo (if y
 ```js
 // this is assumed to be within a parent repo
 route.push(async (req, res) => {
-  const getOrgsApi = require('api-repo/routes/orgs/get.js');
+  const getOrgsApi = require('api-repo/routes/orgs/get.js')
 
-  const result = await getOrgsApi.call(req, { arg: 'val' });
+  const result = await getOrgsApi.call(req, { arg: 'val' })
 
   // ...
-});
+})
 ```
 
 This expects direct calls to be from within another express route handler. The first argument to `.call()` needs to be an express `req` object. The second (optional) arg is the req query or body.
@@ -256,12 +256,12 @@ If a route you are trying to call directly has req params, you can set them via 
 ```js
 // this is assumed to be within a parent repo
 route.push(async (req, res) => {
-  const getOrgInfoApi = require('api-repo/routes/org/$orgName/info/get.js');
+  const getOrgInfoApi = require('api-repo/routes/org/$orgName/info/get.js')
 
-  const result = await getOrgInfoApi.call(req, {}, { orgName: 'myOrg' });
+  const result = await getOrgInfoApi.call(req, {}, { orgName: 'myOrg' })
 
   // ...
-});
+})
 ```
 
 It is possible that the `.call` callback will not receive any data, if the route itself returns null, and `res.send` is never fired.
