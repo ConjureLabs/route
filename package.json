@@ -18,8 +18,8 @@
   "homepage": "https://github.com/ConjureLabs/route#readme",
   "dependencies": {
     "@conjurelabs/err": "0.0.2",
-    "cors": "^2.8.4",
-    "utils": "github:ConjureLabs/utils"
+    "@conjurelabs/utils": "0.0.1",
+    "cors": "^2.8.4"
   },
   "peerDependencies": {
     "express": ">=4"

@@ -6,6 +6,10 @@
   version "0.0.2"
   resolved "https://registry.yarnpkg.com/@conjurelabs/err/-/err-0.0.2.tgz#432f40ccecf74fc5c4cab4eeb0886c0bfdf40c67"
 
+"@conjurelabs/utils@0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@conjurelabs/utils/-/utils-0.0.1.tgz#d72f3c61baa3e4e3334254a235dbfd760ed9c7ec"
+
 JSV@^4.0.x:
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/JSV/-/JSV-4.0.2.tgz#d077f6825571f82132f9dffaed587b4029feff57"
@@ -1242,10 +1246,6 @@ utile@0.2.x:
     mkdirp "0.x.x"
     ncp "0.4.x"
     rimraf "2.x.x"
-
-"utils@github:ConjureLabs/utils":
-  version "1.0.0"
-  resolved "https://codeload.github.com/ConjureLabs/utils/tar.gz/b4ed64fded8f975fbf9f94fb2ecb7c034691670e"
 
 uuid@^2.0.2:
   version "2.0.3"

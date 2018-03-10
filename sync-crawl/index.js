@@ -2,7 +2,7 @@
 
 const fs = require('fs')
 const path = require('path')
-const sortInsensitive = require('utils/Array/sort-insensitive')
+const sortInsensitive = require('@conjurelabs/utils/Array/sort-insensitive')
 
 const validVerbs = ['all', 'get', 'post', 'put', 'patch', 'delete']
 const startingDollarSign = /^\$/
