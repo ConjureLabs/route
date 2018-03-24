@@ -64,3 +64,25 @@ test('should work when mixed with callbacks', t => {
   })
 })
 
+test('should not trigger additional handlers', t => {
+  const r = new Route()
+  r.push(async (req, res, next) => {
+    next()
+  })
+  r.push(async (req, res, next) => {
+    res.send('success')
+  })
+  r.push(async (req, res, next) => {
+    res.send('nope')
+  })
+  const express = require('express')
+  const expressRoute = r.expressRouter('get', '/foo/bar')
+  expressRoute.handle({
+    url: '/foo/bar',
+    method: 'GET'
+  }, {
+    send: val => {
+      t.is(val, 'success')
+    }
+  })
+})
