@@ -143,16 +143,17 @@ class Route extends Array {
     const tasks = [].concat(this)
 
     for (let i = 0; i < tasks.length; i++) {
+      let taskResult
       const resProxy = {
-        send: data => new DirectCallResponse(data)
+        send: data => {
+          taskResult = new DirectCallResponse(data)
+        }
       }
 
-      let taskResult
-
       if (tasks[i].constructor.name === 'AsyncFunction') {
-        taskResult = await tasks[i](req, resProxy)
+        await tasks[i](req, resProxy)
       } else {
-        taskResult = await promisifiedHandler(tasks[i], req)
+        await promisifiedHandler(tasks[i], req, resProxy)
       }
 
       if (taskResult) {
@@ -171,18 +172,17 @@ class DirectCallResponse {
   }
 }
 
-function promisifiedHandler(handler, req) {
+function promisifiedHandler(handler, req, res) {
   return new Promise((resolve, reject) => {
-    handler(req, {
-      send: data => {
-        return resolve(new DirectCallResponse(data))
-      }
-    }, err => {
+    const originalSend = res.send
+    res.send = (...args) => {
+      resolve(...args)
+      originalSend(...args)
+    }
+    handler(req, res, err => {
       if (err) {
-        return reject(err)
+        reject(err)
       }
-
-      resolve()
     })
   })
 }
