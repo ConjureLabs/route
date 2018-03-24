@@ -4,13 +4,6 @@ const { PermissionsError, ContentError } = require('@conjurelabs/err')
 const requireAuthenticationWrapper = Symbol('Require Auth Wrapper')
 const wrapWithExpressNext = Symbol('Wrap async handlers with express next()')
 
-// methods of res that should not prevent next() call
-const resTerminalMethods = [
-  'send', 'sendFile', 'sendStatus',
-  'format', 'json', 'jsonp',
-  'redirect', 'render', 'end'
-]
-
 const defaultOptions = {
   blacklistedEnv: {},
   requireAuthentication: false,
@@ -82,42 +75,28 @@ class Route extends Array {
       return handler
     }
 
-    return (req, res, next) => {
+    return (req, res, nextOriginal) => {
+      // preventing double call on next()
+      let nextCalled = false
+      const next = (...args) => {
+        if (nextCalled === true) {
+          return
+        }
+        nextCalled = true
+
+        nextOriginal(...args)
+      }
+
       // express can't take in a promise (async func), so have to proxy it
       const handlerProxy = async callback => {
-        let sent = false
-
-        for (let i = 0; i < resTerminalMethods.length; i++) {
-          const key = resTerminalMethods[i]
-          const original = res[key]
-          res[key] = function(...args) {
-            sent = true
-            res[key] = original // set back
-            original.call(this, ...args)
-          }
-        }
-
         try {
-          await handler(req, res, next)
+          await handler(req, res, callback)
         } catch(err) {
           return callback(err)
         }
-
-        callback(null, sent)
       }
 
-      handlerProxy((err, sent) => {
-        if (err) {
-          return next(err)
-        }
-
-        // if res.send was called, kill the express flow
-        if (sent === true) {
-          return
-        }
-
-        next()
-      })
+      handlerProxy(err => next(err))
     }
   }
 
