@@ -25,6 +25,7 @@
     "express": ">=4"
   },
   "devDependencies": {
+    "ava": "0.25.0",
     "babel-eslint": "8.0.1",
     "eslint": "4.10.0",
     "jscs": "3.0.7"
