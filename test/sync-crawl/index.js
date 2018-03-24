@@ -190,3 +190,19 @@ test('should return expected results when there are several handlers and dirs', 
     }
   })
 })
+
+test('should go throuh sepcific routes before param routes', t => {
+  const router = new Router()
+  router.use(crawl('routes-03'))
+  
+  router.handle({ url: '/me', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'from ME')
+    }
+  })
+  router.handle({ url: '/abc', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'from ID')
+    }
+  })
+})
