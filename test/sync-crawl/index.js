@@ -107,3 +107,86 @@ test('should return expected results when there are several handlers and dirs', 
     }
   })
 })
+
+test('should return expected results when there are several handlers and dirs', t => {
+  const router = new Router()
+  router.use(crawl('routes-02'))
+
+  router.handle({ url: '/', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'GET 1')
+    }
+  })
+  router.handle({ url: '/', method: 'POST' }, {
+    send: val => {
+      t.is(val, 'POST 1')
+    }
+  })
+  router.handle({ url: '/', method: 'PATCH' }, {
+    send: val => {
+      t.is(val, 'PATCH 1')
+    }
+  })
+  router.handle({ url: '/', method: 'PUT' }, {
+    send: val => {
+      t.is(val, 'PUT 1')
+    }
+  })
+  router.handle({ url: '/', method: 'DELETE' }, {
+    send: val => {
+      t.is(val, 'DELETE 1')
+    }
+  })
+
+  router.handle({ url: '/account', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'GET 2')
+    }
+  })
+  router.handle({ url: '/account', method: 'POST' }, {
+    send: val => {
+      t.is(val, 'POST 2')
+    }
+  })
+  router.handle({ url: '/account', method: 'PATCH' }, {
+    send: val => {
+      t.is(val, 'PATCH 2')
+    }
+  })
+  router.handle({ url: '/account', method: 'PUT' }, {
+    send: val => {
+      t.is(val, 'PUT 2')
+    }
+  })
+  router.handle({ url: '/account', method: 'DELETE' }, {
+    send: val => {
+      t.is(val, 'DELETE 2')
+    }
+  })
+
+  router.handle({ url: '/everyone', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'ALL 1')
+    }
+  })
+  router.handle({ url: '/everyone', method: 'POST' }, {
+    send: val => {
+      t.is(val, 'ALL 1')
+    }
+  })
+  router.handle({ url: '/everyone', method: 'PATCH' }, {
+    send: val => {
+      t.is(val, 'ALL 1')
+    }
+  })
+  router.handle({ url: '/everyone', method: 'PUT' }, {
+    send: val => {
+      t.is(val, 'ALL 1')
+    }
+  })
+  router.handle({ url: '/everyone', method: 'DELETE' }, {
+    send: val => {
+      t.is(val, 'ALL 1')
+    }
+  })
+})
