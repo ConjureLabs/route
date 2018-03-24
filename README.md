@@ -28,35 +28,17 @@ npm install --save route@ConjureLabs/route
 
 ### Async vs Callbacks
 
-You can use either. Callbacks are pretty straight-forward.
+You can use either. The work virtually the same way.
 
 ```js
+// callbacks
 route.push((req, res, next) => {
   // res.send() or next()
 })
-```
 
-With `async`, if you do not `return`, then it's equivalent to calling `next()` in a callback route.
-
-```js
-route.push(async (req, res) => {
-  return res.send('hello world')
-})
-```
-
-```js
-route.push(async (req, res) => {
-  // no return, will imply next()
-})
-```
-
-The following will result in a headers re-sent error. You **must** `return` with `res.send()` in an `async` handler. If you do not `return` it will imply a `res.send()` and _then_ `next()`, which will likely hit your 404 handler, and result in a double response.
-
-```js
-// do not do this
-route.push(async (req, res) => {
-  res.send('improper response')
-  // will call next(), causing a bug
+// async
+route.push(async (req, res, next) => {
+  // res.send() or next()
 })
 ```
 

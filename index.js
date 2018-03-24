@@ -61,7 +61,7 @@ class Route extends Array {
         return next(new PermissionsError('No req.user available'))
       }
 
-      return this[wrapWithExpressNext](handler)(req, res, next)
+      this[wrapWithExpressNext](handler)(req, res, next)
     }
   }
 
@@ -182,7 +182,7 @@ function promisifiedHandler(handler, req) {
         return reject(err)
       }
 
-      return resolve()
+      resolve()
     })
   })
 }
