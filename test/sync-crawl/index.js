@@ -81,4 +81,29 @@ test('should return expected results when there are several handlers and dirs', 
     }
   })
 
+  router.handle({ url: '/everyone', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'ALL 1')
+    }
+  })
+  router.handle({ url: '/everyone', method: 'POST' }, {
+    send: val => {
+      t.is(val, 'ALL 1')
+    }
+  })
+  router.handle({ url: '/everyone', method: 'PATCH' }, {
+    send: val => {
+      t.is(val, 'ALL 1')
+    }
+  })
+  router.handle({ url: '/everyone', method: 'PUT' }, {
+    send: val => {
+      t.is(val, 'ALL 1')
+    }
+  })
+  router.handle({ url: '/everyone', method: 'DELETE' }, {
+    send: val => {
+      t.is(val, 'ALL 1')
+    }
+  })
 })
