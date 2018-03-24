@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "bash ./bash/lint.sh",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "bash ./bash/test.sh"
   },
   "keywords": [
     "express",
@@ -28,6 +28,7 @@
     "ava": "0.25.0",
     "babel-eslint": "8.0.1",
     "eslint": "4.10.0",
+    "express": "4.16.3",
     "jscs": "3.0.7"
   }
 }
