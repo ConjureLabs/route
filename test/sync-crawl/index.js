@@ -206,3 +206,19 @@ test('should go throuh sepcific routes before param routes', t => {
     }
   })
 })
+
+test('should work when there are nested param routes', t => {
+  const router = new Router()
+  router.use(crawl('routes-04'))
+  
+  router.handle({ url: '/foo/123', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'From FOO')
+    }
+  })
+  router.handle({ url: '/foo/123/bar/987', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'From BAR')
+    }
+  })
+})
