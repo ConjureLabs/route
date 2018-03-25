@@ -13,8 +13,8 @@ const Route = require('@conjurelabs/route')
 
 const route = new Route()
 
-route.push(async (req, res) => {
-  return res.send('hello world')
+route.push((req, res) => {
+  res.send('hello world')
 })
 
 module.exports = route
