@@ -32,12 +32,12 @@ or
 yarn add @conjurelabs/route
 ```
 
-### Async vs Callbacks
+### Async vs Normal Handlers
 
 You can use either. The work virtually the same way.
 
 ```js
-// callbacks
+// normal
 route.push((req, res, next) => {
   // res.send() or next()
 })
@@ -45,6 +45,18 @@ route.push((req, res, next) => {
 // async
 route.push(async (req, res, next) => {
   // res.send() or next()
+})
+```
+
+One important difference is how thrown errors are handled. An error thrown in a normal (non-async) handler will raise an exception. But in an async handler a thrown error will cause `next(err)`.
+
+```js
+route.push(async (req, res) => {
+  throw new Error('Some kind of error occurred')
+
+  // next(err) will be called, and the rest of the flow will stop
+
+  res.send('result') // this will not be reached
 })
 ```
 
