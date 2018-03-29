@@ -68,7 +68,14 @@ function syncCrawlRoutesDir(rootpath) {
         continue
       }
 
-      const individualRoute = require(path.resolve(dirpath, files[i]))
+      const routePath = path.resolve(dirpath, files[i])
+      const individualRoute = require(routePath)
+
+      if (!individualRoute.expressRouter) {
+        const relativePath = path.relativePath(rootPath, routePath)
+        throw new Error(`Route instance is not exported from ${relativePath}`)
+      }
+
       routes.push(individualRoute.expressRouter(verb, '/' + uriPathTokens.join('/')))
     }
 
