@@ -92,7 +92,7 @@ class Route extends Array {
         try {
           await handler(req, res, callback)
         } catch(err) {
-          return callback(err)
+          callback(err)
         }
       }
 

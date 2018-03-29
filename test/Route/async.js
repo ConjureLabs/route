@@ -86,3 +86,28 @@ test('should not trigger additional handlers', t => {
     }
   })
 })
+
+test('thrown errors should trigger next(err)', async t => {
+  const express = require('express')
+  const request = require('supertest')
+
+  const r = new Route()
+  r.push(async (req, res, next) => {
+    next() // no error
+  })
+  r.push(async (req, res, next) => {
+    throw new Error('A test error occurred')
+    next()
+  })
+  r.push(async (req, res, next) => {
+    res.send('yup')
+  })
+  const expressRoute = r.expressRouter('get', '/foo/bar')
+
+  const app = express()
+  app.use(expressRoute)
+
+  const res = await request(app).get('/foo/bar')
+
+  t.is(res.status, 500)
+})
