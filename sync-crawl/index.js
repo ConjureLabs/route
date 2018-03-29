@@ -72,7 +72,7 @@ function syncCrawlRoutesDir(rootpath) {
       const individualRoute = require(routePath)
 
       if (!individualRoute.expressRouter) {
-        const relativePath = path.relativePath(rootpath, routePath)
+        const relativePath = path.relative(rootpath, routePath)
         throw new Error(`Route instance is not exported from ${relativePath}`)
       }
 
