@@ -227,15 +227,29 @@ test('should honor multiple of one verb, ordered', t => {
   const router = new Router()
   router.use(crawl('routes-05'))
   
-  router.handle({
-    url: '/foo',
-    method: 'GET'
-  }, {
+  router.handle({ url: '/final', method: 'GET' }, {
     send: val => {
-      t.true(val.zero < val.one)
-      t.true(val.one < val.nine)
-      t.true(val.nine < val.ten)
-      t.true(val.ten < val.final)
+      t.is(val, 'FINAL')
+    }
+  })
+  router.handle({ url: '/zero', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'ZERO')
+    }
+  })
+  router.handle({ url: '/one', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'ONE')
+    }
+  })
+  router.handle({ url: '/nine', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'NINE')
+    }
+  })
+  router.handle({ url: '/ten', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'TEN')
     }
   })
 })
