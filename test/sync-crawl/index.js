@@ -222,3 +222,34 @@ test('should work when there are nested param routes', t => {
     }
   })
 })
+
+test('should honor multiple of one verb, ordered', t => {
+  const router = new Router()
+  router.use(crawl('routes-05'))
+  
+  router.handle({ url: '/final', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'FINAL')
+    }
+  })
+  router.handle({ url: '/zero', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'ZERO')
+    }
+  })
+  router.handle({ url: '/one', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'ONE')
+    }
+  })
+  router.handle({ url: '/nine', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'NINE')
+    }
+  })
+  router.handle({ url: '/ten', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'TEN')
+    }
+  })
+})

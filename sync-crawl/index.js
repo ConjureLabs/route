@@ -7,6 +7,7 @@ const sortInsensitive = require('@conjurelabs/utils/Array/sort-insensitive')
 const validVerbs = ['all', 'get', 'post', 'put', 'patch', 'delete']
 const startingDollarSign = /^\$/
 const jsFileExt = /\.js$/
+const validFilename = /-\d+?$/
 
 function syncCrawlRoutesDir(rootpath) {
   let firstCrawl = true
@@ -27,7 +28,7 @@ function syncCrawlRoutesDir(rootpath) {
     const list = fs.readdirSync(dirpath)
     const delayedDirectories = []
     const routes = []
-    const files = []
+    let files = []
 
     sortInsensitive(list)
 
@@ -61,14 +62,67 @@ function syncCrawlRoutesDir(rootpath) {
       }
     }
 
-    for (let i = 0; i < files.length; i++) {
-      const verb = files[i].replace(jsFileExt, '').toLowerCase()
+    /*
+      Example input:
+      [
+        'get.js',
+        'GET-99.js',
+        'other.js',
+        'README.md'
+      ]
 
-      if (!validVerbs.includes(verb)) {
-        continue
-      }
+      Example output:
+      [
+        { verb: 'get', order: NaN, filename: 'get.js' },
+        { verb: 'get', order: 99, filename: 'GET-99.js' }
+      ]
+    */
+    files = files
+      .map(filename => {
+        const tokens = filename.match(/^([a-zA-Z]+)-?(\d*)\.js/)
 
-      const routePath = path.resolve(dirpath, files[i])
+        if (!tokens) {
+          return null
+        }
+
+        const mapping = {
+          verb: tokens[1].toLowerCase(),
+          order: parseInt(tokens[2], 10),
+          filename
+        }
+
+        if (!validVerbs.includes(mapping.verb)) {
+          return null
+        }
+
+        return mapping
+      })
+      .filter(mapping => !!mapping)
+
+    // files may be like ['get.js', 'get-1.js', 'get-11.js', 'get12.js']
+    // we want to order so that explicit numbers are in order,
+    // and 'get.js' would come last
+    files.sort((a, b) => {
+      const aNaN = Number.isNaN(a.order)
+      const bNaN = Number.isNaN(b.order)
+
+      return aNaN && bNaN ? 0 :
+        aNaN ? 1 :
+        bNaN ? -1 :
+        a.order < b.order ? -1 :
+        a.order > b.order ? 1 :
+        0
+    })
+
+    // lifting back up all.js to front
+    files.sort((a, b) => {
+      return a.verb < b.verb ? -1 :
+        a.verb > b.verb ? 1 :
+        0;
+    })
+
+    for (let mapping of files) {
+      const routePath = path.resolve(dirpath, mapping.filename)
       const individualRoute = require(routePath)
 
       if (!individualRoute.expressRouter) {
@@ -76,7 +130,7 @@ function syncCrawlRoutesDir(rootpath) {
         throw new Error(`Route instance is not exported from ${relativePath}`)
       }
 
-      routes.push(individualRoute.expressRouter(verb, '/' + uriPathTokens.join('/')))
+      routes.push(individualRoute.expressRouter(mapping.verb, '/' + uriPathTokens.join('/')))
     }
 
     return routes
