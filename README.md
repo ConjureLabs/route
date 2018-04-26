@@ -150,9 +150,11 @@ Here's what handlers are processed, in order:
 
 `GET /routes`:
   - `/routes/get.js (wildcard)`
+
 `GET /routes/account/me`:
   - `/routes/get.js (wildcard)`
   - `/routes/account/me/get.js`
+
 `GET /routes/account/1234`:
   - `/routes/get.js (wildcard)`
   - `/routes/account/all.js`
