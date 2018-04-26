@@ -115,6 +115,8 @@ server.use(apiRoutes)
 
 Note that the initial directory (in this case `./routes`) does not add the Express route paths.
 
+#### Serial handlers
+
 You can also add multiple files for the same verb. Add a number to each file to order then, ascending. Any files without a number (e.g. `get.js`) will be the final handler in that case.
 
 ```
@@ -127,6 +129,38 @@ You can also add multiple files for the same verb. Add a number to each file to 
             ├── get-99.js
             └── get.js      # fired last
 ```
+
+#### Order of Execution
+
+Assume you have the following structure:
+
+```
+.
+└── routes
+    ├─── account
+    │   ├── me
+    │   │   └── get.js
+    │   └── $accountId
+    │       ├── all.js
+    │       └── get.js
+    └── get.js (wildcard)
+```
+
+Here's what handlers are processed, in order:
+
+`GET /routes`:
+  - `/routes/get.js (wildcard)`
+`GET /routes/account/me`:
+  - `/routes/get.js (wildcard)`
+  - `/routes/account/me/get.js`
+`GET /routes/account/1234`:
+  - `/routes/get.js (wildcard)`
+  - `/routes/account/all.js`
+  - `/routes/account/get.js`
+
+1. wildcard handlers are hoisted to the top of their scope
+2. directories with specific names (like `/me`) are hoisted above those using params (like `/$accountId`)
+3. `all` handlers are hoisted above more-specific handlers (like `get`)
 
 ### Options
 
