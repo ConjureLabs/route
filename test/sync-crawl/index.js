@@ -222,3 +222,20 @@ test('should work when there are nested param routes', t => {
     }
   })
 })
+
+test('should honor multiple of one verb, ordered', t => {
+  const router = new Router()
+  router.use(crawl('routes-05'))
+  
+  router.handle({
+    url: '/foo',
+    method: 'GET'
+  }, {
+    send: val => {
+      t.true(val.zero < val.one)
+      t.true(val.one < val.nine)
+      t.true(val.nine < val.ten)
+      t.true(val.ten < val.final)
+    }
+  })
+})
