@@ -26,39 +26,28 @@ function syncCrawlRoutesDir(rootpath) {
     }
 
     const list = fs.readdirSync(dirpath)
-    const delayedDirectories = []
+    const subDirectories = []
+    const paramDirectories = []
     const routes = []
     let files = []
 
     sortInsensitive(list)
 
-    for (let i = 0; i < list.length; i++) {
-      const stat = fs.statSync(path.resolve(dirpath, list[i]))
+    for (let resource of list) {
+      const stat = fs.statSync(path.resolve(dirpath, resource))
 
-      if (stat.isFile() && jsFileExt.test(list[i])) {
-        files.push(list[i])
+      if (stat.isFile() && jsFileExt.test(resource)) {
+        files.push(resource)
         continue
       }
 
       if (stat.isDirectory()) {
-        if (startingDollarSign.test(list[i])) {
-          delayedDirectories.push(list[i])
+        if (startingDollarSign.test(resource)) {
+          paramDirectories.push(resource)
           continue
         }
 
-        const subdirRoutes = getRoutes(path.resolve(dirpath, list[i]), uriPathTokens.slice())
-
-        for (let j = 0; j < subdirRoutes.length; j++) {
-          routes.push(subdirRoutes[j])
-        }
-      }
-    }
-
-    for (let i = 0; i < delayedDirectories.length; i++) {
-      const subdirRoutes = getRoutes(path.resolve(dirpath, delayedDirectories[i]), uriPathTokens.slice())
-
-      for (let j = 0; j < subdirRoutes.length; j++) {
-        routes.push(subdirRoutes[j])
+        subDirectories.push(resource)
       }
     }
 
@@ -73,8 +62,8 @@ function syncCrawlRoutesDir(rootpath) {
 
       Example output:
       [
-        { verb: 'get', order: NaN, filename: 'get.js' },
-        { verb: 'get', order: 99, filename: 'GET-99.js' }
+        { verb: 'get', order: NaN, filename: 'get.js', routeInstance: {...} },
+        { verb: 'get', order: 99, filename: 'GET-99.js', routeInstance: {...} }
       ]
     */
     files = files
@@ -85,10 +74,19 @@ function syncCrawlRoutesDir(rootpath) {
           return null
         }
 
+        const routePath = path.resolve(dirpath, filename)
+        const routeInstance = require(routePath)
+
+        if (!routeInstance.expressRouter) {
+          const relativePath = path.relative(rootpath, routePath)
+          throw new Error(`Route instance is not exported from ${relativePath}`)
+        }
+
         const mapping = {
           verb: tokens[1].toLowerCase(),
           order: parseInt(tokens[2], 10),
-          filename
+          filename,
+          routeInstance
         }
 
         if (!validVerbs.includes(mapping.verb)) {
@@ -121,16 +119,35 @@ function syncCrawlRoutesDir(rootpath) {
         0;
     })
 
-    for (let mapping of files) {
-      const routePath = path.resolve(dirpath, mapping.filename)
-      const individualRoute = require(routePath)
-
-      if (!individualRoute.expressRouter) {
-        const relativePath = path.relative(rootpath, routePath)
-        throw new Error(`Route instance is not exported from ${relativePath}`)
+    // 1. hoisting wildcard routes to top of handlers
+    for (let i = 0; i < files.length; i++) {
+      if (!files[i].routeInstance.wildcardRoute) {
+        continue
       }
 
-      routes.push(individualRoute.expressRouter(mapping.verb, '/' + uriPathTokens.join('/')))
+      const mapping = files.splice(i, 1)[0] // splicing it out of array so we don't add it to routing logic twice
+      routes.push(mapping.routeInstance.expressRouter(mapping.verb, '/' + uriPathTokens.join('/')))
+    }
+
+    // 2. adding routes that are more specific
+    for (let directory of subDirectories) {
+      const subdirRoutes = getRoutes(path.resolve(dirpath, directory), uriPathTokens.slice())
+      for (let r of subdirRoutes) {
+        routes.push(r)
+      }
+    }
+
+    // 3. $param directories are considered less specific
+    for (let directory of paramDirectories) {
+      const subdirRoutes = getRoutes(path.resolve(dirpath, directory), uriPathTokens.slice())
+      for (let r of subdirRoutes) {
+        routes.push(r)
+      }
+    }
+
+    // 4. add current dir's handlers
+    for (let mapping of files) {
+      routes.push(mapping.routeInstance.expressRouter(mapping.verb, '/' + uriPathTokens.join('/')))
     }
 
     return routes
