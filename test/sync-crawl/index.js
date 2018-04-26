@@ -253,3 +253,30 @@ test('should honor multiple of one verb, ordered', t => {
     }
   })
 })
+
+test('should honor multiple of one verb, ordered', t => {
+  const router = new Router()
+  router.use(crawl('routes-06'))
+  
+  router.handle({ url: '/without-wildcard/more-specific', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'SPECIFIC')
+    }
+  })
+  router.handle({ url: '/without-wildcard', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'TOP')
+    }
+  })
+
+  router.handle({ url: '/with-wildcard/more-specific', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'TOP')
+    }
+  })
+  router.handle({ url: '/with-wildcard', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'TOP')
+    }
+  })
+})
