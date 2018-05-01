@@ -117,15 +117,15 @@ class Route extends Array {
     const expressPathUsed = this.wildcardRoute ? expressPath.replace(/\/$/, '') + '*' : expressPath
     const expressVerb = verb.toLowerCase()
 
-    for (let i = 0; i < this.length; i++) {
+    for (let handler of this) {
       const methodUsed = this.requireAuthentication ? this[requireAuthenticationWrapper].bind(this) : this[wrapWithExpressNext].bind(this)
 
       if (this.cors) {
         // see https://github.com/expressjs/cors#enabling-cors-pre-flight
         router.options(expressPathUsed, cors(this.cors))
-        router[expressVerb](expressPathUsed, cors(this.cors), methodUsed(this[i]))
+        router[expressVerb](expressPathUsed, cors(this.cors), methodUsed(handler))
       } else {
-        router[expressVerb](expressPathUsed, methodUsed(this[i]))
+        router[expressVerb](expressPathUsed, methodUsed(handler))
       }
     }
 
@@ -142,7 +142,7 @@ class Route extends Array {
 
     const tasks = [].concat(this)
 
-    for (let i = 0; i < tasks.length; i++) {
+    for (let task of tasks) {
       let taskResult
       const resProxy = {
         send: data => {
@@ -150,10 +150,10 @@ class Route extends Array {
         }
       }
 
-      if (tasks[i].constructor.name === 'AsyncFunction') {
-        await tasks[i](req, resProxy)
+      if (task.constructor.name === 'AsyncFunction') {
+        await task(req, resProxy)
       } else {
-        await promisifiedHandler(tasks[i], req, resProxy)
+        await promisifiedHandler(task, req, resProxy)
       }
 
       if (taskResult) {
