@@ -7,6 +7,10 @@
     "lint": "bash ./bash/lint.sh",
     "test": "bash ./bash/test.sh"
   },
+  "files": [
+    "index.js",
+    "sync-crawl.js"
+  ],
   "keywords": [
     "express",
     "node",
