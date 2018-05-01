@@ -29,7 +29,7 @@ class Route extends Array {
     this.call = this.call.bind(this)
 
     this.suppressedRoutes = false
-    for (let key in optionsUsed.blacklistedEnv) {
+    for (const key in optionsUsed.blacklistedEnv) {
       const envVar = process.env[key]
       const blacklistedArray = optionsUsed.blacklistedEnv[key]
 
@@ -41,7 +41,7 @@ class Route extends Array {
   }
 
   static set defaultOptions(options = {}) {
-    for (let key in options) {
+    for (const key in options) {
       defaultOptions[key] = options[key]
     }
   }
@@ -117,7 +117,7 @@ class Route extends Array {
     const expressPathUsed = this.wildcardRoute ? expressPath.replace(/\/$/, '') + '*' : expressPath
     const expressVerb = verb.toLowerCase()
 
-    for (let handler of this) {
+    for (const handler of this) {
       const methodUsed = this.requireAuthentication ? this[requireAuthenticationWrapper].bind(this) : this[wrapWithExpressNext].bind(this)
 
       if (this.cors) {
@@ -142,7 +142,7 @@ class Route extends Array {
 
     const tasks = [].concat(this)
 
-    for (let task of tasks) {
+    for (const task of tasks) {
       let taskResult
       const resProxy = {
         send: data => {

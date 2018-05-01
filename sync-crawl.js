@@ -32,7 +32,7 @@ function syncCrawlRoutesDir(rootpath) {
 
     sortInsensitive(list)
 
-    for (let resource of list) {
+    for (const resource of list) {
       const stat = fs.statSync(path.resolve(dirpath, resource))
 
       if (stat.isFile() && jsFileExt.test(resource)) {
@@ -129,23 +129,23 @@ function syncCrawlRoutesDir(rootpath) {
     }
 
     // 2. adding routes that are more specific
-    for (let directory of subDirectories) {
+    for (const directory of subDirectories) {
       const subdirRoutes = getRoutes(path.resolve(dirpath, directory), uriPathTokens.slice())
-      for (let r of subdirRoutes) {
+      for (const r of subdirRoutes) {
         routes.push(r)
       }
     }
 
     // 3. $param directories are considered less specific
-    for (let directory of paramDirectories) {
+    for (const directory of paramDirectories) {
       const subdirRoutes = getRoutes(path.resolve(dirpath, directory), uriPathTokens.slice())
-      for (let r of subdirRoutes) {
+      for (const r of subdirRoutes) {
         routes.push(r)
       }
     }
 
     // 4. add current dir's handlers
-    for (let mapping of files) {
+    for (const mapping of files) {
       routes.push(mapping.routeInstance.expressRouter(mapping.verb, '/' + uriPathTokens.join('/')))
     }
 
