@@ -7,7 +7,6 @@ const sortInsensitive = require('@conjurelabs/utils/Array/sort-insensitive')
 const validVerbs = ['all', 'get', 'post', 'put', 'patch', 'delete']
 const startingDollarSign = /^\$/
 const jsFileExt = /\.js$/
-const validFilename = /-\d+?$/
 
 function syncCrawlRoutesDir(rootpath) {
   let firstCrawl = true
@@ -116,7 +115,7 @@ function syncCrawlRoutesDir(rootpath) {
     files.sort((a, b) => {
       return a.verb < b.verb ? -1 :
         a.verb > b.verb ? 1 :
-        0;
+        0
     })
 
     // 1. hoisting wildcard routes to top of handlers
