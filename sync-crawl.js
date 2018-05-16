@@ -74,7 +74,12 @@ function syncCrawlRoutesDir(rootpath) {
         }
 
         const routePath = path.resolve(dirpath, filename)
-        const routeInstance = require(routePath)
+        let routeInstance
+        try {
+          routeInstance = require(routePath)
+        } catch (err) {
+          return null
+        }
 
         if (!routeInstance.expressRouter) {
           const relativePath = path.relative(rootpath, routePath)
