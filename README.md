@@ -115,6 +115,30 @@ server.use(apiRoutes)
 
 Note that the initial directory (in this case `./routes`) does not add the Express route paths.
 
+You can also define your own verb mapping, if you want to use filenames other than `get` or `post`.
+
+Do not include file extensions (`.js`) in the values to match against.
+
+```js
+const apiRoutes = crawl(routesDir, {
+  get: 'route.get',
+  post: 'route.post',
+  patch: 'route.patch',
+  put: 'route.put',
+  delete: 'route.delete'
+})
+```
+
+This can also handle expressions, as well as limit what verbs are available
+
+```js
+const apiRoutes = crawl(routesDir, {
+  get: /get-\.+/i,    // can match 'get-xyz.js'
+  post: 'route.post'  // only matches 'route.post.js'
+                      // no other verbs are exposed
+})
+```
+
 #### Serial handlers
 
 You can also add multiple files for the same verb. Add a number to each file to order then, ascending. Any files without a number (e.g. `get.js`) will be the final handler in that case.
