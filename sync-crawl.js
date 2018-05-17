@@ -4,12 +4,27 @@ const fs = require('fs')
 const path = require('path')
 const sortInsensitive = require('@conjurelabs/utils/Array/sort-insensitive')
 
-const validVerbs = ['all', 'get', 'post', 'put', 'patch', 'delete']
+const defaultVerLookup = {
+  all: 'all',
+  get: 'get',
+  post: 'post',
+  put: 'put',
+  patch: 'patch',
+  delete: 'delete'
+}
 const startingDollarSign = /^\$/
 const jsFileExt = /\.js$/
 
-function syncCrawlRoutesDir(rootpath) {
+function syncCrawlRoutesDir(rootpath, verbLookup = defaultVerLookup) {
   let firstCrawl = true
+
+  const verbMatches = Object.values(verbLookup).map(value => {
+    if (typeof value === 'string') {
+      return value.toLowerCase()
+    }
+    return value
+  })
+  const verbKeys = Object.keys(verbLookup)
 
   function getRoutes(dirpath, uriPathTokens = []) {
     const base = path.parse(dirpath).base
@@ -67,7 +82,7 @@ function syncCrawlRoutesDir(rootpath) {
     */
     files = files
       .map(filename => {
-        const tokens = filename.match(/^([a-zA-Z]+)-?(\d*)\.js/)
+        const tokens = filename.match(/^(.+?)-?(\d*)\.js$/)
 
         if (!tokens) {
           return null
@@ -86,14 +101,30 @@ function syncCrawlRoutesDir(rootpath) {
           throw new Error(`Route instance is not exported from ${relativePath}`)
         }
 
+        const verbStr = tokens[1].toLowerCase()
+
         const mapping = {
-          verb: tokens[1].toLowerCase(),
           order: parseInt(tokens[2], 10),
           filename,
           routeInstance
         }
 
-        if (!validVerbs.includes(mapping.verb)) {
+        const indexOf = verbMatches.indexOf(verbStr)
+        if (indexOf !== -1) {
+          mapping.verb = verbKeys[indexOf]
+        } else {
+          for (let i = 0; i < verbMatches.length; i++) {
+            if (!(verbMatches[i] instanceof RegExp)) {
+              continue
+            }
+            if (verbMatches[i].test(verbStr)) {
+              mapping.verb = verbKeys[i]
+              break
+            }
+          }
+        }
+
+        if (!mapping.verb) {
           return null
         }
 

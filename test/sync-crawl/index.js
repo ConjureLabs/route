@@ -5,8 +5,10 @@ const syncCrawl = require('../../sync-crawl')
 
 const Router = express.Router
 
-const crawl = dirname => {
-  return syncCrawl(path.resolve(__dirname, 'helpers', dirname))
+const crawl = (...args) => {
+  // args[0] is dirname
+  args[0] = path.resolve(__dirname, 'helpers', args[0])
+  return syncCrawl(...args)
 }
 
 test('should return an array', t => {
@@ -277,6 +279,44 @@ test('should honor multiple of one verb, ordered', t => {
   router.handle({ url: '/with-wildcard', method: 'GET' }, {
     send: val => {
       t.is(val, 'TOP')
+    }
+  })
+})
+
+test('should honor verb matching strings when specified', t => {
+  const router = new Router()
+  router.use(crawl('routes-07', {
+    get: 'route.get',
+    patch: 'patch'
+  }))
+  
+  router.handle({ url: '/', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'route.get')
+    }
+  })
+  router.handle({ url: '/', method: 'PATCH' }, {
+    send: val => {
+      t.is(val, 'traditional patch')
+    }
+  })
+})
+
+test('should honor regexp matching strings when specified', t => {
+  const router = new Router()
+  router.use(crawl('routes-07', {
+    get: /filename$/i,
+    patch: /^patch$/i
+  }))
+  
+  router.handle({ url: '/', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'strange')
+    }
+  })
+  router.handle({ url: '/', method: 'PATCH' }, {
+    send: val => {
+      t.is(val, 'traditional patch')
     }
   })
 })
