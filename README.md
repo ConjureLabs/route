@@ -90,7 +90,7 @@ const router = accountCreation.expressRouter('post', '/account/:accountId')
 
 This is useful if you want to handle things directly, but most likely you want to get _all the routes_ within the root routes directory.
 
-**The crawl logic is uses `sync` logic.** The idea is that it should be used at initial setup of a server, where a blip of sync logic is acceptable, but typically not after that.
+**The crawl logic is `sync`.** The idea is that it should be used at initial setup of a server, where a blip of sync logic is acceptable, but typically not after that.
 
 ```js
 const crawl = require('@conjurelabs/route/sync-crawl')
