@@ -2,6 +2,7 @@
 
 const fs = require('fs')
 const path = require('path')
+const debug = require('debug')('route')
 const sortInsensitive = require('@conjurelabs/utils/Array/sort-insensitive')
 
 const defaultVerLookup = {
@@ -93,6 +94,7 @@ function syncCrawlRoutesDir(rootpath, verbLookup = defaultVerLookup) {
         try {
           routeInstance = require(routePath)
         } catch (err) {
+          debug(`${routePath} skipped - ${err.message}`)
           return null
         }
 
