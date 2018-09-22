@@ -132,7 +132,7 @@ class Route extends Array {
     return router
   }
 
-  copy() {
+  get copy() {
     const copy = new Route()
     copy.requireAuthentication = this.requireAuthentication
     copy.wildcardRoute = this.wildcard
