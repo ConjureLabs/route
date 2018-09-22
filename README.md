@@ -340,3 +340,19 @@ route.push(async (req, res) => {
 ```
 
 It is possible that the `.call` callback will not receive any data, if the route itself returns null, and `res.send` is never fired.
+
+### Copying a route instance
+
+It's easy to copy a route.
+
+```js
+const myRoute = require('./routes/my-route/get.js')
+const copy = myRoute.copy
+
+// allows you to modify the copy
+copy.unshift(async (req, res, next) => {
+  // ...
+})
+
+module.exports = copy
+```
