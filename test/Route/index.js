@@ -28,3 +28,26 @@ test('.call should work within a .call', async t => {
   const result2 = await direct2({ url: '/', method: 'POST' }, { thing: 'foo' })
   t.is(result2.value, 'a_foo_b')
 })
+
+test('.copy should return a new instance, with the same routes', async t => {
+  const original = require('./helpers/routes-02/get.js')
+  const copy = original.copy
+  t.true(original !== copy)
+  t.is(copy.length, original.length)
+
+  // modifying original route to prevent original output
+  // this should not affect the copy
+  original.unshift(async (req, res) => {
+    res.send({
+      hijacked: true
+    })
+  })
+  t.true(copy.length < original.length)
+  const originalDirect = original.call
+  const originalResult = await originalDirect({ url: '/', method: 'GET' }, { thing: 'bar' })
+  t.is(originalResult.hijacked, true)
+
+  const copyDirect = copy.call
+  const copyResult = await copyDirect({ url: '/', method: 'GET' }, { thing: 'bar' })
+  t.is(copyResult.value, 'a_bar_b')
+})
