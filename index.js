@@ -132,6 +132,17 @@ class Route extends Array {
     return router
   }
 
+  copy() {
+    const copy = new Route()
+    copy.requireAuthentication = this.requireAuthentication
+    copy.wildcardRoute = this.wildcard
+    copy.skippedHandler = this.skippedHandler
+    copy.cors = this.cors
+    copy.suppressedRoutes = this.suppressedRoutes
+    copy.push(...this.slice())
+    return copy
+  }
+
   async call(req, args = {}, params = {}) {
     req = {
       ...req,
