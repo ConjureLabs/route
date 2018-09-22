@@ -1,5 +1,7 @@
 ## Route
 
+[![CircleCI](https://circleci.com/gh/ConjureLabs/route/tree/master.svg?style=svg)](https://circleci.com/gh/ConjureLabs/route/tree/master)
+
 This class is meant to help working with [Express](https://expressjs.com/) routes.
 
 Instead of creating a hodgepodge of oddly organized files, containing an assortment of route handlers, you should organize all routes within one root directory, where the directory structure within define the route path. It makes it clear to developers, as well as helps developers make better decisions when creating a new route, for a given resource.
