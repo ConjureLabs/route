@@ -1,6 +1,7 @@
 const cors = require('cors')
 const { PermissionsError, ContentError } = require('@conjurelabs/err')
 
+const applyCustomHandler = Symbol('Wrap one-off handler with custom static handler')
 const requireAuthenticationWrapper = Symbol('Require Auth Wrapper')
 const wrapWithExpressNext = Symbol('Wrap async handlers with express next()')
 
@@ -11,6 +12,8 @@ const defaultOptions = {
   skippedHandler: null,
   cors: null
 }
+
+const customHandlers = {}
 
 class Route extends Array {
   constructor(options = {}) {
@@ -26,6 +29,10 @@ class Route extends Array {
     this.skippedHandler = optionsUsed.skippedHandler
     this.cors = optionsUsed.cors
 
+    for (const handlerKey in customHandlers) {
+      this[handlerKey] = optionsUsed[handlerKey]
+    }
+
     this.call = this.call.bind(this)
 
     this.suppressedRoutes = false
@@ -40,9 +47,28 @@ class Route extends Array {
     }
   }
 
+  static set handlers(handlers = {}) {
+    for (const key in handlers) {
+      this.defaultOptions[key] = false
+      customHandlers[key] = handlers[key]
+    }
+  }
+
   static set defaultOptions(options = {}) {
     for (const key in options) {
       defaultOptions[key] = options[key]
+    }
+  }
+
+  [applyCustomHandler](customHandler, handler /* must be already express wrapped */) {
+    return (req, res, next) => {
+      customHandler(req, res, err => {
+        if (err) {
+          return next(err)
+        }
+
+        handler(req, res, next)
+      })
     }
   }
 
@@ -117,15 +143,25 @@ class Route extends Array {
     const expressPathUsed = this.wildcardRoute ? expressPath.replace(/\/$/, '') + '*' : expressPath
     const expressVerb = verb.toLowerCase()
 
-    for (const handler of this) {
+    for (let handler of this) {
       const methodUsed = this.requireAuthentication ? this[requireAuthenticationWrapper].bind(this) : this[wrapWithExpressNext].bind(this)
+      handler = methodUsed(handler)
+
+      for (const handlerKey in customHandlers) {
+        if (this[handlerKey]) {
+          const customHandler = 
+
+          const customMethodUsed = this[applyCustomHandler].bind(this)
+          handler = customMethodUsed(customHandlers[handlerKey], handler)
+        }
+      }
 
       if (this.cors) {
         // see https://github.com/expressjs/cors#enabling-cors-pre-flight
         router.options(expressPathUsed, cors(this.cors))
-        router[expressVerb](expressPathUsed, cors(this.cors), methodUsed(handler))
+        router[expressVerb](expressPathUsed, cors(this.cors), handler)
       } else {
-        router[expressVerb](expressPathUsed, methodUsed(handler))
+        router[expressVerb](expressPathUsed, handler)
       }
     }
 
