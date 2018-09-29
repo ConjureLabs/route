@@ -285,6 +285,37 @@ const route = new Route({
 })
 ```
 
+#### Custom Handlers
+
+You can define custom handlers that will become available with any new `Route` instance.
+
+```js
+// making `requireApiToken` available on route instances
+// this will be available in any file that uses `Route`
+Route.handlers = {
+  requireApiToken: (req, res, next) => {
+    const { token } = req.query
+    const validToken = await getUserToken(req)
+
+    if (token !== validToken) {
+      return next(new Error('Must pass valid user token'))
+    }
+
+    next()
+  }
+}
+
+// setting up a route that uses the new api token logic
+const route = new Route({
+  requireApiToken: true
+})
+
+// this handler will only fire if api token handler succeeds
+route.push((req, res, next) => {
+  res.send('sensitive info')
+})
+```
+
 #### Changing Default Options
 
 If you have something like CORS, and want every endpoint to have those options, instead of sending them to each constructor, you can modify the default `Route` options before initializing any routes.
