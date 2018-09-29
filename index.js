@@ -49,7 +49,7 @@ class Route extends Array {
 
   static set handlers(handlers = {}) {
     for (const key in handlers) {
-      this.defaultOptions[key] = false
+      defaultOptions[key] = false
       customHandlers[key] = handlers[key]
     }
   }
@@ -144,15 +144,11 @@ class Route extends Array {
     const expressVerb = verb.toLowerCase()
 
     for (let handler of this) {
-      const methodUsed = this.requireAuthentication ? this[requireAuthenticationWrapper].bind(this) : this[wrapWithExpressNext].bind(this)
-      handler = methodUsed(handler)
+      handler = this.requireAuthentication ? this[requireAuthenticationWrapper].bind(this)(handler) : this[wrapWithExpressNext].bind(this)(handler)
 
       for (const handlerKey in customHandlers) {
         if (this[handlerKey]) {
-          const customHandler = 
-
-          const customMethodUsed = this[applyCustomHandler].bind(this)
-          handler = customMethodUsed(customHandlers[handlerKey], handler)
+          handler = this[applyCustomHandler].bind(this)(customHandlers[handlerKey], handler)
         }
       }
 

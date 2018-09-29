@@ -51,3 +51,13 @@ test('.copy should return a new instance, with the same routes', async t => {
   const copyResult = await copyDirect({ url: '/', method: 'GET' }, { thing: 'bar' })
   t.is(copyResult.value, 'a_bar_b')
 })
+
+test('.handlers should allow custom global handlers', async t => {
+  const getDirect = require('./helpers/routes-03/get.js').call
+  
+  const result = await getDirect({ url: '/', method: 'GET' }, { token: '1122339999-xyz' })
+  t.is(result.value, 'valid token')
+
+  const result2 = await getDirect({ url: '/', method: 'GET' })
+  t.is(result2.value, 'INVALID TOKEN')
+})
