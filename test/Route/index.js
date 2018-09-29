@@ -52,12 +52,20 @@ test('.copy should return a new instance, with the same routes', async t => {
   t.is(copyResult.value, 'a_bar_b')
 })
 
+// need to use supertest since handlers wont fire in direct clls
 test('.handlers should allow custom global handlers', async t => {
-  const getDirect = require('./helpers/routes-03/get.js').call
-  
-  const result = await getDirect({ url: '/', method: 'GET' }, { token: '1122339999-xyz' })
-  t.is(result.value, 'valid token')
+  const express = require('express')
+  const request = require('supertest')
 
-  const result2 = await getDirect({ url: '/', method: 'GET' })
-  t.is(result2.value, 'INVALID TOKEN')
+  const r = require('./helpers/routes-03/get.js')
+  const expressRoute = r.expressRouter('get', '/')
+
+  const app = express()
+  app.use(expressRoute)
+
+  const res1 = await request(app).get('/?token=1122339999-xyz')
+  t.is(res1.body.value, 'valid token')
+
+  const res2 = await request(app).get('/')
+  t.is(res2.status, 500)
 })

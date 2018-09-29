@@ -6,9 +6,7 @@ Route.handlers = {
     const validToken = '1122339999-xyz'
 
     if (token !== validToken) {
-      return res.send({
-        value: 'INVALID TOKEN!'
-      })
+      return next(new Error('Invalid Token'))
     }
 
     next()
