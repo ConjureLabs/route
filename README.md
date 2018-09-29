@@ -316,6 +316,8 @@ route.push((req, res, next) => {
 })
 ```
 
+Keep in mind that if you use `.call` to directly call endpoints (within Node) then these handlers will be skipped.
+
 #### Changing Default Options
 
 If you have something like CORS, and want every endpoint to have those options, instead of sending them to each constructor, you can modify the default `Route` options before initializing any routes.
