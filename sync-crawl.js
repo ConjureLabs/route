@@ -2,7 +2,6 @@
 
 const fs = require('fs')
 const path = require('path')
-const debug = require('debug')('route')
 const sortInsensitive = require('@conjurelabs/utils/Array/sort-insensitive')
 
 const defaultVerLookup = {
@@ -90,25 +89,11 @@ function syncCrawlRoutesDir(rootpath, verbLookup = defaultVerLookup) {
         }
 
         const routePath = path.resolve(dirpath, filename)
-        let routeInstance
-        try {
-          routeInstance = require(routePath)
-        } catch (err) {
-          debug(`${routePath} skipped - ${err.message}`)
-          return null
-        }
-
-        if (!routeInstance.expressRouter) {
-          const relativePath = path.relative(rootpath, routePath)
-          throw new Error(`Route instance is not exported from ${relativePath}`)
-        }
-
         const verbStr = tokens[1].toLowerCase()
-
         const mapping = {
           order: parseInt(tokens[2], 10),
           filename,
-          routeInstance
+          routeInstance: require(routePath)
         }
 
         const indexOf = verbMatches.indexOf(verbStr)
@@ -128,6 +113,11 @@ function syncCrawlRoutesDir(rootpath, verbLookup = defaultVerLookup) {
 
         if (!mapping.verb) {
           return null
+        }
+
+        if (!mapping.routeInstance.expressRouter) {
+          const relativePath = path.relative(rootpath, routePath)
+          throw new Error(`Route instance is not exported from ${relativePath}`)
         }
 
         return mapping
