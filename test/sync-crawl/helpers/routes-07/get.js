@@ -1,4 +1,4 @@
-const Route = require('../../../../../')
+const Route = require('../../../../')
 
 const r = new Route()
 
