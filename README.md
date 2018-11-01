@@ -329,7 +329,7 @@ Route.handlers = {
     const { tokenBlacklist } = args
     const validToken = await getUserToken(req)
 
-    if (token !== validToken && !tokenBlacklist.includes(token)) {
+    if (token !== validToken || tokenBlacklist.includes(token)) {
       return next(new Error('Must pass valid user token'))
     }
 

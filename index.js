@@ -69,8 +69,8 @@ class Route extends Array {
           return next(err)
         }
 
-        handler(req, res, next, applyArgs)
-      })
+        handler(req, res, next)
+      }, applyArgs)
     }
   }
 
