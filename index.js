@@ -60,7 +60,8 @@ class Route extends Array {
     }
   }
 
-  [applyCustomHandler](customHandler, handler /* must be already express wrapped */, applyArgs) {
+  // handler must be already express wrapped
+  [applyCustomHandler](customHandler, handler, applyArgs) {
     customHandler = this[wrapWithExpressNext].bind(this)(customHandler)
 
     return (req, res, next) => {
