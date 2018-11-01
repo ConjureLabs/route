@@ -60,7 +60,7 @@ class Route extends Array {
     }
   }
 
-  [applyCustomHandler](customHandler, handler /* must be already express wrapped */) {
+  [applyCustomHandler](customHandler, handler /* must be already express wrapped */, applyArgs) {
     customHandler = this[wrapWithExpressNext].bind(this)(customHandler)
 
     return (req, res, next) => {
@@ -69,7 +69,7 @@ class Route extends Array {
           return next(err)
         }
 
-        handler(req, res, next)
+        handler(req, res, next, applyArgs)
       })
     }
   }
@@ -150,7 +150,7 @@ class Route extends Array {
 
       for (const handlerKey in customHandlers) {
         if (this[handlerKey]) {
-          handler = this[applyCustomHandler].bind(this)(customHandlers[handlerKey], handler)
+          handler = this[applyCustomHandler].bind(this)(customHandlers[handlerKey], handler, typeof this[handlerKey] === 'boolean' ? undefined : this[handlerKey])
         }
       }
 
