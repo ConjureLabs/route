@@ -90,3 +90,21 @@ test('custom global handlers should accept arguments', async t => {
   const res3 = await request(app).get('/?token=1122339999-xyz')
   t.is(res3.status, 500)
 })
+
+// need to use supertest since handlers wont fire in direct clls
+test(`next('router') should skip all Route handlers`, async t => {
+  const express = require('express')
+  const request = require('supertest')
+
+  const r = require('./helpers/routes-05/get.js')
+  const expressRoute = r.expressRouter('get', '/')
+
+  const app = express()
+  app.use(expressRoute)
+
+  const res1 = await request(app).get('/?skip=no')
+  t.is(res1.body.value, 'hit')
+
+  const res2 = await request(app).get('/?skip=yes')
+  t.is(res2.status, 404)
+})
