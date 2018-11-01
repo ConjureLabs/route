@@ -318,6 +318,40 @@ route.push((req, res, next) => {
 
 Keep in mind that if you use `.call` to directly call endpoints (within Node) then these handlers will be skipped.
 
+You can also define custom arguments to a handler, that are passed per each route.
+
+```js
+// making `requireApiToken` available on route instances
+// this will be available in any file that uses `Route`
+Route.handlers = {
+  requireApiToken: (req, res, next, args) => {
+    const { token } = req.query
+    const { tokenBlacklist } = args
+    const validToken = await getUserToken(req)
+
+    if (token !== validToken && !tokenBlacklist.includes(token)) {
+      return next(new Error('Must pass valid user token'))
+    }
+
+    next()
+  }
+}
+
+const tokenBlacklist = ['asdf123']
+
+// setting up a route that uses the new api token logic
+const route = new Route({
+  requireApiToken: tokenBlacklist
+})
+
+// this handler will only fire if api token handler succeeds
+route.push((req, res, next) => {
+  res.send('sensitive info')
+})
+```
+
+If the handler is enabled via `true` then the handler will not receive any args.
+
 #### Changing Default Options
 
 If you have something like CORS, and want every endpoint to have those options, instead of sending them to each constructor, you can modify the default `Route` options before initializing any routes.
