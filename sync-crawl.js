@@ -82,7 +82,7 @@ function syncCrawlRoutesDir(rootpath, verbLookup = defaultVerLookup) {
     */
     files = files
       .map(filename => {
-        const tokens = filename.match(/^(.+?).?(\d*)\.js$/)
+        const tokens = filename.match(/^(.+?)\.?(\d*)\.js$/)
 
         if (!tokens) {
           return null
