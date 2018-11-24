@@ -69,7 +69,7 @@ function syncCrawlRoutesDir(rootpath, verbLookup = defaultVerLookup) {
       Example input:
       [
         'get.js',
-        'GET-99.js',
+        'GET.99.js',
         'other.js',
         'README.md'
       ]
@@ -77,12 +77,12 @@ function syncCrawlRoutesDir(rootpath, verbLookup = defaultVerLookup) {
       Example output:
       [
         { verb: 'get', order: NaN, filename: 'get.js', routeInstance: {...} },
-        { verb: 'get', order: 99, filename: 'GET-99.js', routeInstance: {...} }
+        { verb: 'get', order: 99, filename: 'GET.99.js', routeInstance: {...} }
       ]
     */
     files = files
       .map(filename => {
-        const tokens = filename.match(/^(.+?)-?(\d*)\.js$/)
+        const tokens = filename.match(/^(.+?).?(\d*)\.js$/)
 
         if (!tokens) {
           return null
