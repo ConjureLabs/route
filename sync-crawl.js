@@ -4,7 +4,7 @@ const fs = require('fs')
 const path = require('path')
 const sortInsensitive = require('@conjurelabs/utils/Array/sort-insensitive')
 
-const defaultVerLookup = {
+const defaultVerbLookup = {
   all: 'all',
   get: 'get',
   post: 'post',
@@ -15,8 +15,12 @@ const defaultVerLookup = {
 const startingDollarSign = /^\$/
 const jsFileExt = /\.js$/
 
-function syncCrawlRoutesDir(rootpath, verbLookup = defaultVerLookup) {
+function syncCrawlRoutesDir(rootpath, options = {}) {
   let firstCrawl = true
+
+  // to avoid naming confusion later
+  const verbLookup = options.verbs || defaultVerbLookup
+  const { fileHandler } = options
 
   const verbMatches = Object.values(verbLookup).map(value => {
     if (typeof value === 'string') {
@@ -116,8 +120,14 @@ function syncCrawlRoutesDir(rootpath, verbLookup = defaultVerLookup) {
         }
 
         if (!mapping.routeInstance.expressRouter) {
-          const relativePath = path.relative(rootpath, routePath)
-          throw new Error(`Route instance is not exported from ${relativePath}`)
+          if (fileHandler) {
+            mapping.routeInstance = fileHandler(mapping.routeInstance)
+          }
+          // repeated check in case the above handler is not used or is not effective
+          if (!mapping.routeInstance.expressRouter) {
+            const relativePath = path.relative(rootpath, routePath)
+            throw new Error(`Route instance is not exported from ${relativePath}`)
+          }
         }
 
         return mapping

@@ -1,6 +1,6 @@
 {
   "name": "@conjurelabs/route",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Express routes made easy",
   "main": "index.js",
   "scripts": {
