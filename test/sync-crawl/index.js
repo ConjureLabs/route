@@ -2,6 +2,7 @@ const { test } = require('ava')
 const path = require('path')
 const express = require('express')
 const syncCrawl = require('../../sync-crawl')
+const Route = require('../../')
 
 const Router = express.Router
 
@@ -321,6 +322,35 @@ test('should honor regexp matching strings when specified', t => {
   router.handle({ url: '/', method: 'PATCH' }, {
     send: val => {
       t.is(val, 'traditional patch')
+    }
+  })
+})
+
+test('should allow custom file handling as a fallback', t => {
+  const router = new Router()
+  router.use(crawl('routes-08', {
+    fileHandler: content => {
+      const route = new Route()
+      route.push((req, res) => {
+        res.send(`number is ${content.num}`)
+      })
+      return route
+    }
+  }))
+
+  router.handle({ url: '/a', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'number is 1')
+    }
+  })
+  router.handle({ url: '/b', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'number is 2')
+    }
+  })
+  router.handle({ url: '/c', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'number is 3')
     }
   })
 })

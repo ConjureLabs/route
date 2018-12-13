@@ -214,6 +214,8 @@ const apiRoutes = crawl(routesDir, {
 }
 ```
 
+This will not apply to files that return a `Route` instance.
+
 ### Options
 
 #### Require Authentication

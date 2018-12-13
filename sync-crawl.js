@@ -4,7 +4,7 @@ const fs = require('fs')
 const path = require('path')
 const sortInsensitive = require('@conjurelabs/utils/Array/sort-insensitive')
 
-const defaultVerbsLookup = {
+const defaultVerbLookup = {
   all: 'all',
   get: 'get',
   post: 'post',
@@ -19,7 +19,7 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
   let firstCrawl = true
 
   // to avoid naming confusion later
-  const verbLookup = options.verbs || defaultVerbsLookup
+  const verbLookup = options.verbs || defaultVerbLookup
   const { fileHandler } = options
 
   const verbMatches = Object.values(verbLookup).map(value => {
