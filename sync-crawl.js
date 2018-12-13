@@ -4,7 +4,7 @@ const fs = require('fs')
 const path = require('path')
 const sortInsensitive = require('@conjurelabs/utils/Array/sort-insensitive')
 
-const defaultVerLookup = {
+const defaultVerbsLookup = {
   all: 'all',
   get: 'get',
   post: 'post',
@@ -15,11 +15,12 @@ const defaultVerLookup = {
 const startingDollarSign = /^\$/
 const jsFileExt = /\.js$/
 
-function syncCrawlRoutesDir(rootpath, { verbs: defaultVerLookup, fileHandler: null }) {
+function syncCrawlRoutesDir(rootpath, options = {}) {
   let firstCrawl = true
 
   // to avoid naming confusion later
-  const verbLookup = verbs
+  const verbLookup = options.verbs || defaultVerbsLookup
+  const { fileHandler } = options
 
   const verbMatches = Object.values(verbLookup).map(value => {
     if (typeof value === 'string') {
@@ -119,8 +120,8 @@ function syncCrawlRoutesDir(rootpath, { verbs: defaultVerLookup, fileHandler: nu
         }
 
         if (!mapping.routeInstance.expressRouter) {
-          if (customFileHandler) {
-            mapping.routeInstance = customFileHandler(mapping.routeInstance)
+          if (fileHandler) {
+            mapping.routeInstance = fileHandler(mapping.routeInstance)
           }
           // repeated check in case the above handler is not used or is not effective
           if (!mapping.routeInstance.expressRouter) {

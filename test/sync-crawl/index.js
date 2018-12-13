@@ -286,8 +286,10 @@ test('should honor multiple of one verb, ordered', t => {
 test('should honor verb matching strings when specified', t => {
   const router = new Router()
   router.use(crawl('routes-07', {
-    get: 'route.get',
-    patch: 'patch'
+    verbs: {
+      get: 'route.get',
+      patch: 'patch'
+    }
   }))
   
   router.handle({ url: '/', method: 'GET' }, {
@@ -305,8 +307,10 @@ test('should honor verb matching strings when specified', t => {
 test('should honor regexp matching strings when specified', t => {
   const router = new Router()
   router.use(crawl('routes-07', {
-    get: /filename$/i,
-    patch: /^patch$/i
+    verbs: {
+      get: /filename$/i,
+      patch: /^patch$/i
+    }
   }))
   
   router.handle({ url: '/', method: 'GET' }, {
