@@ -123,11 +123,13 @@ Do not include file extensions (`.js`) in the values to match against.
 
 ```js
 const apiRoutes = crawl(routesDir, {
-  get: 'route.get',
-  post: 'route.post',
-  patch: 'route.patch',
-  put: 'route.put',
-  delete: 'route.delete'
+  verbs: {
+    get: 'route.get',
+    post: 'route.post',
+    patch: 'route.patch',
+    put: 'route.put',
+    delete: 'route.delete'
+  }
 })
 ```
 
@@ -135,9 +137,11 @@ This can also handle expressions, as well as limit what verbs are available
 
 ```js
 const apiRoutes = crawl(routesDir, {
-  get: /get-\.+/i,    // can match 'get-xyz.js'
-  post: 'route.post'  // only matches 'route.post.js'
-                      // no other verbs are exposed
+  verbs: {
+    get: /get-\.+/i,    // can match 'get-xyz.js'
+    post: 'route.post'  // only matches 'route.post.js'
+                        // no other verbs are exposed
+  }
 })
 ```
 
@@ -191,6 +195,24 @@ Here's what handlers are processed, in order:
 1. wildcard handlers are hoisted to the top of their scope
 2. directories with specific names (like `/me`) are hoisted above those using params (like `/$accountId`)
 3. `all` handlers are hoisted above more-specific handlers (like `get`)
+
+#### file handling
+
+In the case that a file is crawled, but does not return a `Route` instance, it will normally throw. You can provide a `fileHandler` function to the crawler, which takes in the file exports and should return a `Route` instance.
+
+This can be used to support something like a React component without having to wrap it all in repeaditive `Route` scaffolding.
+
+```js
+const apiRoutes = crawl(routesDir, {
+  fileHandler: content => {
+    const route = new Route()
+    route.push((req, res) => {
+      res.render(content)
+    })
+    return route
+  }
+}
+```
 
 ### Options
 

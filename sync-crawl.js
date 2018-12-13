@@ -15,8 +15,11 @@ const defaultVerLookup = {
 const startingDollarSign = /^\$/
 const jsFileExt = /\.js$/
 
-function syncCrawlRoutesDir(rootpath, verbLookup = defaultVerLookup) {
+function syncCrawlRoutesDir(rootpath, { verbs: defaultVerLookup, fileHandler: null }) {
   let firstCrawl = true
+
+  // to avoid naming confusion later
+  const verbLookup = verbs
 
   const verbMatches = Object.values(verbLookup).map(value => {
     if (typeof value === 'string') {
@@ -116,8 +119,14 @@ function syncCrawlRoutesDir(rootpath, verbLookup = defaultVerLookup) {
         }
 
         if (!mapping.routeInstance.expressRouter) {
-          const relativePath = path.relative(rootpath, routePath)
-          throw new Error(`Route instance is not exported from ${relativePath}`)
+          if (customFileHandler) {
+            mapping.routeInstance = customFileHandler(mapping.routeInstance)
+          }
+          // repeated check in case the above handler is not used or is not effective
+          if (!mapping.routeInstance.expressRouter) {
+            const relativePath = path.relative(rootpath, routePath)
+            throw new Error(`Route instance is not exported from ${relativePath}`)
+          }
         }
 
         return mapping
