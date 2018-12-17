@@ -354,3 +354,29 @@ test('should allow custom file handling as a fallback', t => {
     }
   })
 })
+
+test('should pass expected context when calling custom file handling', t => {
+  let cachedContext // set at file handling
+
+  const router = new Router()
+  router.use(crawl('routes-09', {
+    verbs: {
+      get: /.+/ // any name...
+    },
+
+    fileHandler: (content, context) => {
+      cachedContext = context
+
+      const route = new Route()
+      route.push((req, res) => {
+        res.send(`name is ${content.name}`)
+      })
+      return route
+    }
+  }))
+
+  // checking context
+  t.is(cachedContext.filename, 'fancy-name.js')
+  t.true(/routes-09\/xyz\/fancy-name\.js$/.test(cachedContext.routePath))
+  t.is(cachedContext.verb, 'get')
+})
