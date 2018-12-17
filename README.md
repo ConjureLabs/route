@@ -216,6 +216,16 @@ const apiRoutes = crawl(routesDir, {
 
 This will not apply to files that return a `Route` instance.
 
+It also receives some extra context of the file being handled.
+
+```js
+fileHandler: (content, {
+  filename,   // e.g. 'get.js'
+  routePath,  // path used to require file
+  verb        // e.g. 'get'
+}) => { ... }
+```
+
 ### Options
 
 #### Require Authentication

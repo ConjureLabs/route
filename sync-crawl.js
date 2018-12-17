@@ -121,7 +121,7 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
 
         if (!mapping.routeInstance.expressRouter) {
           if (fileHandler) {
-            mapping.routeInstance = fileHandler(mapping.routeInstance)
+            mapping.routeInstance = fileHandler(mapping.routeInstance, { filename, routePath, verb: verbStr })
           }
           // repeated check in case the above handler is not used or is not effective
           if (!mapping.routeInstance.expressRouter) {
