@@ -161,16 +161,23 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
     })
 
     // 1. hoisting wildcard routes to top of handlers
+    const wildcardIndexes = []
     for (let i = 0; i < files.length; i++) {
       if (!files[i].routeInstance.wildcardRoute) {
         continue
       }
 
-      const mapping = files.splice(i, 1)[0] // splicing it out of array so we don't add it to routing logic twice
+      wildcardIndexes.push(i)
+      const mapping = files[i]
       routes.push(mapping.routeInstance.expressRouter(mapping.verb, '/' + uriPathTokens.join('/')))
     }
 
-    // 2. adding routes that are more specific
+    // 2. removing applied wildcards
+    for (let i = wildcardIndexes.length - 1; i >= 0; i--) {
+      files.splice(wildcardIndexes[i], 1)[0]
+    }
+
+    // 3. adding routes that are more specific
     for (const directory of subDirectories) {
       const subdirRoutes = getRoutes(path.resolve(dirpath, directory), uriPathTokens.slice())
       for (const r of subdirRoutes) {
@@ -178,7 +185,7 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
       }
     }
 
-    // 3. $param directories are considered less specific
+    // 4. $param directories are considered less specific
     for (const directory of paramDirectories) {
       const subdirRoutes = getRoutes(path.resolve(dirpath, directory), uriPathTokens.slice())
       for (const r of subdirRoutes) {
@@ -186,7 +193,7 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
       }
     }
 
-    // 4. add current dir's handlers
+    // 5. add current dir's handlers
     for (const mapping of files) {
       routes.push(mapping.routeInstance.expressRouter(mapping.verb, '/' + uriPathTokens.join('/')))
     }
