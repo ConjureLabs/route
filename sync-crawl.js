@@ -174,6 +174,7 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
 
     // 2. removing applied wildcards
     for (let i = wildcardIndexes.length - 1; i >= 0; i--) {
+      // eslint-disable-next-line no-unused-expressions
       files.splice(wildcardIndexes[i], 1)[0]
     }
 
