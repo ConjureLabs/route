@@ -95,11 +95,11 @@ This is useful if you want to handle things directly, but most likely you want t
 **The crawl logic is `sync`.** The idea is that it should be used at initial setup of a server, where a blip of sync logic is acceptable, but typically not after that.
 
 ```js
-const crawl = require('@conjurelabs/route/sync-crawl')
+const { syncCrawl } = require('@conjurelabs/route')
 const path = require('path')
 const routesDir = path.resolve(__dirname, 'routes')
 
-const apiRoutes = crawl(routesDir)
+const apiRoutes = syncCrawl(routesDir)
 
 // now you can simply pass all the routes into Express
 server.use(apiRoutes)
@@ -122,7 +122,7 @@ You can also define your own verb mapping, if you want to use filenames other th
 Do not include file extensions (`.js`) in the values to match against.
 
 ```js
-const apiRoutes = crawl(routesDir, {
+const apiRoutes = syncCrawl(routesDir, {
   verbs: {
     get: 'route.get',
     post: 'route.post',
@@ -136,7 +136,7 @@ const apiRoutes = crawl(routesDir, {
 This can also handle expressions, as well as limit what verbs are available
 
 ```js
-const apiRoutes = crawl(routesDir, {
+const apiRoutes = syncCrawl(routesDir, {
   verbs: {
     get: /get-\.+/i,    // can match 'get-xyz.js'
     post: 'route.post'  // only matches 'route.post.js'
@@ -203,7 +203,7 @@ In the case that a file is crawled, but does not return a `Route` instance, it w
 This can be used to support something like a React component without having to wrap it all in repeaditive `Route` scaffolding.
 
 ```js
-const apiRoutes = crawl(routesDir, {
+const apiRoutes = syncCrawl(routesDir, {
   fileHandler: content => {
     const route = new Route()
     route.push((req, res) => {
