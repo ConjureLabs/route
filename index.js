@@ -1,5 +1,6 @@
 const cors = require('cors')
 const { PermissionsError, ContentError } = require('@conjurelabs/err')
+const syncCrawl = require('./sync-crawl')
 
 const applyCustomHandler = Symbol('Wrap one-off handler with custom static handler')
 const requireAuthenticationWrapper = Symbol('Require Auth Wrapper')
@@ -234,3 +235,4 @@ function promisifiedHandler(handler, req, res) {
 }
 
 module.exports = Route
+module.exports.syncCrawl = syncCrawl
