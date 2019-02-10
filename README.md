@@ -234,24 +234,6 @@ fileHandler: (content, {
 
 ### Options
 
-#### Require Authentication
-
-If you want a route to only be accessible if the user is authenticated (based on Express' `req.isAuthenticated()`), then use:
-
-```js
-const route = new Route({
-  requireAuthentication: true
-})
-```
-
-Note that the default behavior is to not restrict access. But if you want to be explicit, you can set `requireAuthentication` to `false`:
-
-```js
-const route = new Route({
-  requireAuthentication: false
-})
-```
-
 #### Blacklisted Env Vars
 
 If you want to block a route from being using when an ENV var is set, you can do so like:
