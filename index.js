@@ -157,20 +157,5 @@ class Route extends Array {
   }
 }
 
-function promisifiedHandler(handler, req, res) {
-  return new Promise((resolve, reject) => {
-    const originalSend = res.send
-    res.send = (...args) => {
-      resolve(...args)
-      originalSend(...args)
-    }
-    handler(req, res, err => {
-      if (err) {
-        reject(err)
-      }
-    })
-  })
-}
-
 module.exports = Route
 module.exports.syncCrawl = syncCrawl
