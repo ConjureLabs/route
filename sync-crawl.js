@@ -18,7 +18,7 @@ const startingDollarSign = /^\$/
 const jsFileExt = /\.js$/
 
 class Logging {
-  initialize() {
+  constructor() {
     this.stack = []
   }
 
