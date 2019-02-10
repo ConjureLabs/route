@@ -202,7 +202,7 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
 
       wildcardIndexes.push(i)
       const mapping = files[i]
-      logging.push({
+      log.push({
         method: mapping.verb,
         routPath: `/${uriPathTokens.join('/')}*`,
         filePath: mapping.filePath
@@ -234,7 +234,7 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
 
     // 5. add current dir's handlers
     for (const mapping of files) {
-      logging.push({
+      log.push({
         method: mapping.verb,
         routPath: `/${uriPathTokens.join('/')}`,
         filePath: mapping.filePath
@@ -246,7 +246,7 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
   }
 
   const routes = getRoutes(rootpath)
-  logging.flushOut()
+  log.flushOut()
   return routes
 }
 
