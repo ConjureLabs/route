@@ -155,45 +155,6 @@ class Route extends Array {
     copy.push(...this.slice())
     return copy
   }
-
-  async call(req, args = {}, params = {}) {
-    req = {
-      ...req,
-      body: args,
-      query: args,
-      params
-    }
-
-    const tasks = [].concat(this)
-
-    for (const task of tasks) {
-      let taskResult
-      const resProxy = {
-        send: data => {
-          taskResult = new DirectCallResponse(data)
-        }
-      }
-
-      if (task.constructor.name === 'AsyncFunction') {
-        await task(req, resProxy)
-      } else {
-        await promisifiedHandler(task, req, resProxy)
-      }
-
-      if (taskResult) {
-        if (taskResult instanceof DirectCallResponse) {
-          return taskResult.data
-        }
-        return
-      }
-    }
-  }
-}
-
-class DirectCallResponse {
-  constructor(data) {
-    this.data = data
-  }
 }
 
 function promisifiedHandler(handler, req, res) {
