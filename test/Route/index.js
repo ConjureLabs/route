@@ -9,6 +9,7 @@ test('Route should be an array', t => {
 
 test('.copy should return a new instance, with the same routes', async t => {
   const original = require('./helpers/routes-02/get.js')
+  const express = require('express')
   const request = require('supertest')
 
   const copy = original.copy
