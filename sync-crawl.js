@@ -205,7 +205,7 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
       const mapping = files[i]
       log.push({
         method: mapping.verb,
-        routPath: `/${uriPathTokens.join('/')}*`,
+        routePath: `/${uriPathTokens.join('/')}*`,
         filePath: mapping.filePath
       })
       routes.push(mapping.routeInstance.expressRouter(mapping.verb, '/' + uriPathTokens.join('/')))
@@ -237,7 +237,7 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
     for (const mapping of files) {
       log.push({
         method: mapping.verb,
-        routPath: `/${uriPathTokens.join('/')}`,
+        routePath: `/${uriPathTokens.join('/')}`,
         filePath: mapping.filePath
       })
       routes.push(mapping.routeInstance.expressRouter(mapping.verb, '/' + uriPathTokens.join('/')))
