@@ -31,6 +31,7 @@ class Logging {
       columns.methods.push(tokens.method.toUpperCase())
       columns.routePaths.push(tokens.routePath)
       columns.filePaths.push(tokens.filePath)
+      return columns
     }, {
       methods: [],
       routePaths: [],
