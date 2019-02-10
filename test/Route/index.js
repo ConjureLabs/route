@@ -29,15 +29,15 @@ test('.copy should return a new instance, with the same routes', async t => {
   const router1 = original.expressRouter('get', '/')
   app1.use(router1)
   const res1 = await request(app1).get('/')
-  t.is(res1.hijacked, true)
-  t.is(res1.value, undefined)
+  t.is(res1.body.hijacked, true)
+  t.is(res1.body.value, undefined)
 
   const app2 = express()
   const router2 = copy.expressRouter('get', '/')
   app2.use(router2)
   const res2 = await request(app2).get('/')
-  t.is(res2.hijacked, undefined)
-  t.is(res2.value, 'yup')
+  t.is(res2.body.hijacked, undefined)
+  t.is(res2.body.value, 'yup')
 })
 
 // need to use supertest since handlers wont fire in direct clls
