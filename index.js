@@ -31,8 +31,6 @@ class Route extends Array {
       this[handlerKey] = optionsUsed[handlerKey]
     }
 
-    this.call = this.call.bind(this)
-
     this.suppressedRoutes = false
     for (const key in optionsUsed.blacklistedEnv) {
       const envVar = process.env[key]
