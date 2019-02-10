@@ -350,8 +350,6 @@ route.push((req, res, next) => {
 })
 ```
 
-Keep in mind that if you use `.call` to directly call endpoints (within Node) then these handlers will be skipped.
-
 You can also define custom arguments to a handler, that are passed per each route.
 
 ```js
@@ -407,42 +405,6 @@ You can alter anything within the `this` namespace (including the handlers, sinc
 `expressRouterPrep` is called at the start of `expressRouter`.
 
 By overriding this method you can add any route mutation logic before the full route tree is constructed.
-
-### Server-side Calls
-
-Let's say you have an API repo. And a server running that, so that your web server can call it.
-
-And then within the web repo, you have some backend code that needs to access the API. You can have your backend make an HTTP request to the API server, which is okay, but it involves an additional hop, which adds overhead to the overall request.
-
-Alternatively, you can install the API repo as a module into your web repo (if you are not super opposed to that idea) and then access the API route handlers directly, as function calls, via `.call(req, args)`. This means your web repo would fire the API logic directly, avoiding that extra hop, and avoiding duplicating code as well. The caveat here is that you would have to upgrade the API module within your web repo, as needed.
-
-```js
-// this is assumed to be within a parent repo
-route.push(async (req, res) => {
-  const getOrgsApi = require('api-repo/routes/orgs/get.js')
-
-  const result = await getOrgsApi.call(req, { arg: 'val' })
-
-  // ...
-})
-```
-
-This expects direct calls to be from within another express route handler. The first argument to `.call()` needs to be an express `req` object. The second (optional) arg is the req query or body.
-
-If a route you are trying to call directly has req params, you can set them via a third argument.
-
-```js
-// this is assumed to be within a parent repo
-route.push(async (req, res) => {
-  const getOrgInfoApi = require('api-repo/routes/org/$orgName/info/get.js')
-
-  const result = await getOrgInfoApi.call(req, {}, { orgName: 'myOrg' })
-
-  // ...
-})
-```
-
-It is possible that the `.call` callback will not receive any data, if the route itself returns null, and `res.send` is never fired.
 
 ### Copying a route instance
 
