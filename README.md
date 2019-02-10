@@ -147,6 +147,12 @@ const apiRoutes = syncCrawl(routesDir, {
 
 These will still honor numbering. `'route.post'` can match `'route.post-0.js'`
 
+#### Debugging Crawled Routes
+
+You can enable debugging of `syncCrawl` by setting the env var `DEBUG=route:syncCrawl` (or `=*` for all [debug](https://www.npmjs.com/package/debug) output).
+
+This will list all applied routes, and what files will handle the calls.
+
 #### Serial handlers
 
 You can also add multiple files for the same verb. Add a number to each file to order them, ascending. Any files without a number (e.g. `get.js`) will be the final handler in that case.
