@@ -95,11 +95,11 @@ This is useful if you want to handle things directly, but most likely you want t
 **The crawl logic is `sync`.** The idea is that it should be used at initial setup of a server, where a blip of sync logic is acceptable, but typically not after that.
 
 ```js
-const crawl = require('@conjurelabs/route/sync-crawl')
+const { syncCrawl } = require('@conjurelabs/route')
 const path = require('path')
 const routesDir = path.resolve(__dirname, 'routes')
 
-const apiRoutes = crawl(routesDir)
+const apiRoutes = syncCrawl(routesDir)
 
 // now you can simply pass all the routes into Express
 server.use(apiRoutes)
@@ -122,7 +122,7 @@ You can also define your own verb mapping, if you want to use filenames other th
 Do not include file extensions (`.js`) in the values to match against.
 
 ```js
-const apiRoutes = crawl(routesDir, {
+const apiRoutes = syncCrawl(routesDir, {
   verbs: {
     get: 'route.get',
     post: 'route.post',
@@ -136,7 +136,7 @@ const apiRoutes = crawl(routesDir, {
 This can also handle expressions, as well as limit what verbs are available
 
 ```js
-const apiRoutes = crawl(routesDir, {
+const apiRoutes = syncCrawl(routesDir, {
   verbs: {
     get: /get-\.+/i,    // can match 'get-xyz.js'
     post: 'route.post'  // only matches 'route.post.js'
@@ -146,6 +146,12 @@ const apiRoutes = crawl(routesDir, {
 ```
 
 These will still honor numbering. `'route.post'` can match `'route.post-0.js'`
+
+#### Debugging Crawled Routes
+
+You can enable debugging of `syncCrawl` by setting the env var `DEBUG=route:syncCrawl` (or `=*` for all [debug](https://www.npmjs.com/package/debug) output).
+
+This will list all applied routes, and what files will handle the calls.
 
 #### Serial handlers
 
@@ -203,7 +209,7 @@ In the case that a file is crawled, but does not return a `Route` instance, it w
 This can be used to support something like a React component without having to wrap it all in repeaditive `Route` scaffolding.
 
 ```js
-const apiRoutes = crawl(routesDir, {
+const apiRoutes = syncCrawl(routesDir, {
   fileHandler: content => {
     const route = new Route()
     route.push((req, res) => {
@@ -227,24 +233,6 @@ fileHandler: (content, {
 ```
 
 ### Options
-
-#### Require Authentication
-
-If you want a route to only be accessible if the user is authenticated (based on Express' `req.isAuthenticated()`), then use:
-
-```js
-const route = new Route({
-  requireAuthentication: true
-})
-```
-
-Note that the default behavior is to not restrict access. But if you want to be explicit, you can set `requireAuthentication` to `false`:
-
-```js
-const route = new Route({
-  requireAuthentication: false
-})
-```
 
 #### Blacklisted Env Vars
 
@@ -284,18 +272,18 @@ module.exports = route
 
 #### Skipped Handler
 
-If a route is skipped, because of invalid criteria like not passing the `requireAuthentication` check, then it will, by default, continue through the Express routes matching the path. To override that, you can supply `skippedHandler`.
+If a route is skipped, because of invalid criteria like not passing a custom `requireToken` check, then it will, by default, continue through the Express routes matching the path. To override that, you can supply `skippedHandler`.
 
 ```js
 const route = new Route({
-  requireAuthentication: true,
+  requireToken: true, // assuming custom handler set
   skippedHandler: async (req, res) => {
     // ...
   }
 })
 
 route.push(async (req, res) => {
-  // if this route is not executed, because the user is not authed,
+  // if this route is not executed, because the user session did not meet `requireToken` criteria,
   // then `skippedHandler` will be called instead of this or any later handlers
 })
 ```
@@ -349,8 +337,6 @@ route.push((req, res, next) => {
   res.send('sensitive info')
 })
 ```
-
-Keep in mind that if you use `.call` to directly call endpoints (within Node) then these handlers will be skipped.
 
 You can also define custom arguments to a handler, that are passed per each route.
 
@@ -407,42 +393,6 @@ You can alter anything within the `this` namespace (including the handlers, sinc
 `expressRouterPrep` is called at the start of `expressRouter`.
 
 By overriding this method you can add any route mutation logic before the full route tree is constructed.
-
-### Server-side Calls
-
-Let's say you have an API repo. And a server running that, so that your web server can call it.
-
-And then within the web repo, you have some backend code that needs to access the API. You can have your backend make an HTTP request to the API server, which is okay, but it involves an additional hop, which adds overhead to the overall request.
-
-Alternatively, you can install the API repo as a module into your web repo (if you are not super opposed to that idea) and then access the API route handlers directly, as function calls, via `.call(req, args)`. This means your web repo would fire the API logic directly, avoiding that extra hop, and avoiding duplicating code as well. The caveat here is that you would have to upgrade the API module within your web repo, as needed.
-
-```js
-// this is assumed to be within a parent repo
-route.push(async (req, res) => {
-  const getOrgsApi = require('api-repo/routes/orgs/get.js')
-
-  const result = await getOrgsApi.call(req, { arg: 'val' })
-
-  // ...
-})
-```
-
-This expects direct calls to be from within another express route handler. The first argument to `.call()` needs to be an express `req` object. The second (optional) arg is the req query or body.
-
-If a route you are trying to call directly has req params, you can set them via a third argument.
-
-```js
-// this is assumed to be within a parent repo
-route.push(async (req, res) => {
-  const getOrgInfoApi = require('api-repo/routes/org/$orgName/info/get.js')
-
-  const result = await getOrgInfoApi.call(req, {}, { orgName: 'myOrg' })
-
-  // ...
-})
-```
-
-It is possible that the `.call` callback will not receive any data, if the route itself returns null, and `res.send` is never fired.
 
 ### Copying a route instance
 

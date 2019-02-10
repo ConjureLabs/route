@@ -1,6 +1,6 @@
 {
   "name": "@conjurelabs/route",
-  "version": "0.8.1",
+  "version": "1.0.0-rc1",
   "description": "Express routes made easy",
   "main": "index.js",
   "scripts": {
@@ -22,8 +22,9 @@
   "homepage": "https://github.com/ConjureLabs/route#readme",
   "dependencies": {
     "@conjurelabs/err": "0.0.2",
-    "@conjurelabs/utils": "0.0.1",
-    "cors": "^2.8.4"
+    "@conjurelabs/utils": "0.3.0",
+    "cors": "^2.8.4",
+    "debug": "4.1.1"
   },
   "peerDependencies": {
     "express": ">=4"

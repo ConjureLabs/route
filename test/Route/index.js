@@ -7,30 +7,11 @@ test('Route should be an array', t => {
   t.true(typeof r.length === 'number')
 })
 
-test('.call should return value on GET request', async t => {
-  const getDirect = require('./helpers/routes-00/get.js').call
-  const result = await getDirect({ url: '/', method: 'GET' })
-  t.is(result.value, 'something')
-})
-
-test('.call should return value on POST request', async t => {
-  const postDirect = require('./helpers/routes-00/post.js').call
-  const result = await postDirect({ url: '/', method: 'POST' }, { thing: 'xyz' })
-  t.is(result.value, 'a_xyz_b')
-})
-
-test('.call should work within a .call', async t => {
-  const direct = require('./helpers/routes-01/get.js').call
-  const result = await direct({ url: '/', method: 'GET' }, { thing: 'thang' })
-  t.is(result.value, 'a_thang_b')
-
-  const direct2 = require('./helpers/routes-01/post.js').call
-  const result2 = await direct2({ url: '/', method: 'POST' }, { thing: 'foo' })
-  t.is(result2.value, 'a_foo_b')
-})
-
 test('.copy should return a new instance, with the same routes', async t => {
   const original = require('./helpers/routes-02/get.js')
+  const express = require('express')
+  const request = require('supertest')
+
   const copy = original.copy
   t.true(original !== copy)
   t.is(copy.length, original.length)
@@ -43,13 +24,20 @@ test('.copy should return a new instance, with the same routes', async t => {
     })
   })
   t.true(copy.length < original.length)
-  const originalDirect = original.call
-  const originalResult = await originalDirect({ url: '/', method: 'GET' }, { thing: 'bar' })
-  t.is(originalResult.hijacked, true)
 
-  const copyDirect = copy.call
-  const copyResult = await copyDirect({ url: '/', method: 'GET' }, { thing: 'bar' })
-  t.is(copyResult.value, 'a_bar_b')
+  const app1 = express()
+  const router1 = original.expressRouter('get', '/')
+  app1.use(router1)
+  const res1 = await request(app1).get('/')
+  t.is(res1.body.hijacked, true)
+  t.is(res1.body.value, undefined)
+
+  const app2 = express()
+  const router2 = copy.expressRouter('get', '/')
+  app2.use(router2)
+  const res2 = await request(app2).get('/')
+  t.is(res2.body.hijacked, undefined)
+  t.is(res2.body.value, 'yup')
 })
 
 // need to use supertest since handlers wont fire in direct clls

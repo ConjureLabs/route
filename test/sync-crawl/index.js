@@ -380,3 +380,8 @@ test('should pass expected context when calling custom file handling', t => {
   t.true(/routes-09\/xyz\/fancy-name\.js$/.test(cachedContext.routePath))
   t.is(cachedContext.verb, 'get')
 })
+
+test('should be able to require syncCrawl directly from module', t => {
+  const syncCrawl2 = require('../../').syncCrawl
+  t.is(syncCrawl2, syncCrawl)
+})
