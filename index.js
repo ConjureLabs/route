@@ -3,12 +3,10 @@ const { PermissionsError, ContentError } = require('@conjurelabs/err')
 const syncCrawl = require('./sync-crawl')
 
 const applyCustomHandler = Symbol('Wrap one-off handler with custom static handler')
-const requireAuthenticationWrapper = Symbol('Require Auth Wrapper')
 const wrapWithExpressNext = Symbol('Wrap async handlers with express next()')
 
 const defaultOptions = {
   blacklistedEnv: {},
-  requireAuthentication: false,
   wildcard: false,
   skippedHandler: null,
   cors: null
@@ -25,7 +23,6 @@ class Route extends Array {
       ...options
     }
 
-    this.requireAuthentication = optionsUsed.requireAuthentication
     this.wildcardRoute = optionsUsed.wildcard
     this.skippedHandler = optionsUsed.skippedHandler
     this.cors = optionsUsed.cors
@@ -73,25 +70,6 @@ class Route extends Array {
 
         handler(req, res, next)
       }, applyArgs)
-    }
-  }
-
-  [requireAuthenticationWrapper](handler) {
-    const skippedHandler = this.skippedHandler
-
-    return (req, res, next) => {
-      if (!req.isAuthenticated()) {
-        if (typeof skippedHandler === 'function') {
-          return this[wrapWithExpressNext](skippedHandler)(req, res, next)
-        }
-        return next()
-      }
-
-      if (!req.user) {
-        return next(new PermissionsError('No req.user available'))
-      }
-
-      this[wrapWithExpressNext](handler)(req, res, next)
     }
   }
 
@@ -148,7 +126,7 @@ class Route extends Array {
     const expressVerb = verb.toLowerCase()
 
     for (let handler of this) {
-      handler = this.requireAuthentication ? this[requireAuthenticationWrapper].bind(this)(handler) : this[wrapWithExpressNext].bind(this)(handler)
+      handler = this[wrapWithExpressNext].bind(this)(handler)
 
       for (const handlerKey in customHandlers) {
         if (this[handlerKey]) {
@@ -170,7 +148,6 @@ class Route extends Array {
 
   get copy() {
     const copy = new Route()
-    copy.requireAuthentication = this.requireAuthentication
     copy.wildcardRoute = this.wildcard
     copy.skippedHandler = this.skippedHandler
     copy.cors = this.cors
