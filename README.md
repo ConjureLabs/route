@@ -272,18 +272,18 @@ module.exports = route
 
 #### Skipped Handler
 
-If a route is skipped, because of invalid criteria like not passing the `requireAuthentication` check, then it will, by default, continue through the Express routes matching the path. To override that, you can supply `skippedHandler`.
+If a route is skipped, because of invalid criteria like not passing a custom `requireToken` check, then it will, by default, continue through the Express routes matching the path. To override that, you can supply `skippedHandler`.
 
 ```js
 const route = new Route({
-  requireAuthentication: true,
+  requireToken: true, // assuming custom handler set
   skippedHandler: async (req, res) => {
     // ...
   }
 })
 
 route.push(async (req, res) => {
-  // if this route is not executed, because the user is not authed,
+  // if this route is not executed, because the user session did not meet `requireToken` criteria,
   // then `skippedHandler` will be called instead of this or any later handlers
 })
 ```
