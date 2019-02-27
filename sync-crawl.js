@@ -208,7 +208,9 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
         routePath: `/${uriPathTokens.join('/')}*`,
         filePath: mapping.filePath
       })
-      routes.push(mapping.routeInstance.expressRouter(mapping.verb, '/' + uriPathTokens.join('/')))
+      const newRoute = mapping.routeInstance.expressRouter(mapping.verb, '/' + uriPathTokens.join('/'))
+      newRoute.filePath = mapping.filePath
+      routes.push(newRoute)
     }
 
     // 2. removing applied wildcards
@@ -240,7 +242,9 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
         routePath: `/${uriPathTokens.join('/')}`,
         filePath: mapping.filePath
       })
-      routes.push(mapping.routeInstance.expressRouter(mapping.verb, '/' + uriPathTokens.join('/')))
+      const newRoute = mapping.routeInstance.expressRouter(mapping.verb, '/' + uriPathTokens.join('/'))
+      newRoute.filePath = mapping.filePath
+      routes.push(newRoute)
     }
 
     return routes
