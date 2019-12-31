@@ -25,7 +25,7 @@ module.exports = route
 ### Install
 
 ```sh
-npm install --save @conjurelabs/route
+npm install @conjurelabs/route
 ```
 
 or
