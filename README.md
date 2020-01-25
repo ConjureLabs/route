@@ -147,6 +147,17 @@ const apiRoutes = syncCrawl(routesDir, {
 
 These will still honor numbering. `'route.post'` can match `'route.post-0.js'`
 
+#### URL Params
+
+If you have a directory like `/$accountName` in your routes path, it will be accessible via `req.params` just as you would normally expect in Express.
+
+```js
+route.push(async (req, res) => {
+  const { accountName } = req.params
+  // ...
+})
+```
+
 #### Debugging Crawled Routes
 
 You can enable debugging of `syncCrawl` by setting the env var `DEBUG=route:syncCrawl` (or `=*` for all [debug](https://www.npmjs.com/package/debug) output).
