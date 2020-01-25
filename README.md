@@ -383,6 +383,14 @@ route.push((req, res, next) => {
 
 If the handler is enabled via `true` then the handler will not receive any args.
 
+If you want a handler to be `true` in every route instance, by default, you can add it to `Route.defaultOptions`
+
+```js
+Route.defaultOptions = {
+  requireApiToken: true
+}
+```
+
 #### Changing Default Options
 
 If you have something like CORS, and want every endpoint to have those options, instead of sending them to each constructor, you can modify the default `Route` options before initializing any routes.
