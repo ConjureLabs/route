@@ -1,6 +1,8 @@
+# system
 .DS_Store
-.idea
-*.rdb
+
+# node
 node_modules
+
+# generated files
 *.log
-package-lock.json
