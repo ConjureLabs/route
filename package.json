@@ -23,7 +23,7 @@
   "dependencies": {
     "@conjurelabs/err": "0.0.2",
     "@conjurelabs/utils": "0.3.0",
-    "cors": "^2.8.4",
+    "cors": "2.8.5",
     "debug": "4.1.1"
   },
   "peerDependencies": {
