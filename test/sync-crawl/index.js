@@ -427,4 +427,9 @@ test('should go throuh sepcific routes before param routes (II)', t => {
       t.is(val, 'from ID')
     }
   })
+  router.handle({ url: '/xyz', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'hit')
+    }
+  })
 })
