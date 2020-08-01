@@ -261,7 +261,7 @@ const route = new Route({
 })
 ```
 
-You can also set these in `routes.json` files in the route tree. Configuration is resolved, and any inline configuration will override resolved values.
+You can also set these in `routes.json` or `routes.js` files in the route tree. Configuration is resolved, and any inline configuration will override resolved values.
 
 ```
 .

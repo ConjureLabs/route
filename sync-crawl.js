@@ -16,7 +16,7 @@ const defaultVerbLookup = {
 }
 const startingDollarSign = /^\$/
 const jsFileExt = /\.js$/
-const confFile = /^routes.json$/i
+const confFile = /^\.routes\.js(?:on)?$/i
 
 class Logging {
   constructor() {
@@ -126,13 +126,13 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
       const stat = fs.statSync(path.resolve(dirPath, resource))
 
       if (stat.isFile()) {
-        if (jsFileExt.test(resource)) {
-          files.push(resource)
+        if (confFile.test(resource)) {
+          confPaths = confPaths.concat(path.resolve(dirPath, resource))
           continue
         }
 
-        if (confFile.test(resource)) {
-          confPaths = confPaths.concat(path.resolve(dirPath, resource))
+        if (jsFileExt.test(resource)) {
+          files.push(resource)
           continue
         }
       }
