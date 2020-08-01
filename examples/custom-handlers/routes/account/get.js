@@ -5,7 +5,7 @@ const route = new Route({
 })
 
 route.push((req, res) => {
-  res.send(`<body><h1>Hello, ${req.session.name}</h1></body>`)
+  res.send(`<body><h1>Hey there, ${req.session.name}</h1></body>`)
 })
 
 module.exports = route
