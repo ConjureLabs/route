@@ -147,6 +147,14 @@ const apiRoutes = syncCrawl(routesDir, {
 
 These will still honor numbering. `'route.post'` can match `'route.post-0.js'`
 
+#### Exporting Functions
+
+When using `syncCrawl`, you will be able to export direct functions, or array of functions, to be used as route handlers. These will be auto-converted to `Route` instances.
+
+```js
+module.exports = (req, res) => res.send('hello world')
+```
+
 #### URL Params
 
 If you have a directory like `/$accountName` in your routes path, it will be accessible via `req.params` just as you would normally expect in Express.
