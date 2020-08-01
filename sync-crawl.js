@@ -16,6 +16,7 @@ const defaultVerbLookup = {
 }
 const startingDollarSign = /^\$/
 const jsFileExt = /\.js$/
+const confFile = /^routes.json$/i
 
 class Logging {
   constructor() {
@@ -47,6 +48,15 @@ class Logging {
   }
 }
 
+function setResolvedConf(routeInstance, confPaths) {
+  const resolvedConf = confPaths.reduce((resolved, currentPath) => {
+    const applied = require(currentPath)
+    return { ...resolved, ...applied }
+  }, {})
+
+  routeInstance.resolvedConf = resolvedConf
+}
+
 function syncCrawlRoutesDir(rootpath, options = {}) {
   const log = new Logging()
   let firstCrawl = true
@@ -63,7 +73,9 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
   })
   const verbKeys = Object.keys(verbLookup)
 
-  function getRoutes(dirPath, uriPathTokens = []) {
+  function getRoutes(dirPath, props = {}) {
+    const { uriPathTokens = [], confPaths = [] } = props
+
     const base = path.parse(dirPath).base
 
     // first directory is not added to the uri path, for the express routing
@@ -81,15 +93,23 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
     const paramDirectories = []
     const routes = []
     let files = []
+    let localConf
 
     sortInsensitive(list)
 
     for (const resource of list) {
       const stat = fs.statSync(path.resolve(dirPath, resource))
 
-      if (stat.isFile() && jsFileExt.test(resource)) {
-        files.push(resource)
-        continue
+      if (stat.isFile()) {
+        if (jsFileExt.test(resource)) {
+          files.push(resource)
+          continue
+        }
+
+        if (confFile.test(resource)) {
+          confPaths = confPaths.concat(path.resolve(dirPath, resource))
+          continue
+        }
       }
 
       if (stat.isDirectory()) {
@@ -208,6 +228,7 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
         routePath: `/${uriPathTokens.join('/')}*`,
         filePath: mapping.filePath
       })
+      setResolvedConf(mapping.routeInstance, confPaths)
       const newRoute = mapping.routeInstance.expressRouter(mapping.verb, '/' + uriPathTokens.join('/'))
       newRoute.filePath = mapping.filePath
       routes.push(newRoute)
@@ -221,7 +242,7 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
 
     // 3. adding routes that are more specific
     for (const directory of subDirectories) {
-      const subdirRoutes = getRoutes(path.resolve(dirPath, directory), uriPathTokens.slice())
+      const subdirRoutes = getRoutes(path.resolve(dirPath, directory), { uriPathTokens: uriPathTokens.slice(), confPaths })
       for (const r of subdirRoutes) {
         routes.push(r)
       }
@@ -229,7 +250,7 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
 
     // 4. $param directories are considered less specific
     for (const directory of paramDirectories) {
-      const subdirRoutes = getRoutes(path.resolve(dirPath, directory), uriPathTokens.slice())
+      const subdirRoutes = getRoutes(path.resolve(dirPath, directory), { uriPathTokens: uriPathTokens.slice(), confPaths })
       for (const r of subdirRoutes) {
         routes.push(r)
       }
@@ -242,6 +263,7 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
         routePath: `/${uriPathTokens.join('/')}`,
         filePath: mapping.filePath
       })
+      setResolvedConf(mapping.routeInstance, confPaths)
       const newRoute = mapping.routeInstance.expressRouter(mapping.verb, '/' + uriPathTokens.join('/'))
       newRoute.filePath = mapping.filePath
       routes.push(newRoute)

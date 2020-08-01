@@ -4,6 +4,9 @@ const syncCrawl = require('./sync-crawl')
 
 const applyCustomHandler = Symbol('Wrap one-off handler with custom static handler')
 const wrapWithExpressNext = Symbol('Wrap async handlers with express next()')
+const routeConfPrepped = Symbol('Route conf has been prepped?')
+const resolvedConf = Symbol('Resolved conf')
+const inlineConf = Symbol('Inline conf')
 
 const defaultOptions = {
   blacklistedEnv: {},
@@ -18,29 +21,9 @@ class Route extends Array {
   constructor(options = {}) {
     super()
 
-    const optionsUsed = {
-      ...defaultOptions,
-      ...options
-    }
-
-    this.wildcardRoute = optionsUsed.wildcard
-    this.skippedHandler = optionsUsed.skippedHandler
-    this.cors = optionsUsed.cors
-
-    for (const handlerKey in customHandlers) {
-      this[handlerKey] = optionsUsed[handlerKey]
-    }
-
-    this.suppressedRoutes = false
-    for (const key in optionsUsed.blacklistedEnv) {
-      const envVar = process.env[key]
-      const blacklistedArray = optionsUsed.blacklistedEnv[key]
-
-      if (envVar && blacklistedArray.includes(envVar)) {
-        this.suppressedRoutes = true
-        break
-      }
-    }
+    this[inlineConf] = options
+    this[resolvedConf] = {}
+    this[routeConfPrepped] = false
   }
 
   static set handlers(handlers = {}) {
@@ -54,6 +37,10 @@ class Route extends Array {
     for (const key in options) {
       defaultOptions[key] = options[key]
     }
+  }
+
+  set resolvedConf(conf) {
+    this[resolvedConf] = conf
   }
 
   // handler must be already express wrapped
@@ -106,11 +93,44 @@ class Route extends Array {
     }
   }
 
+  confPrep() {
+    if (this[routeConfPrepped]) {
+      return
+    }
+    this[routeConfPrepped] = true
+
+    const optionsUsed = {
+      ...defaultOptions,
+      ...this[resolvedConf],
+      ...this[inlineConf]
+    }
+
+    this.wildcardRoute = optionsUsed.wildcard
+    this.skippedHandler = optionsUsed.skippedHandler
+    this.cors = optionsUsed.cors
+
+    for (const handlerKey in customHandlers) {
+      this[handlerKey] = optionsUsed[handlerKey]
+    }
+
+    this.suppressedRoutes = false
+    for (const key in optionsUsed.blacklistedEnv) {
+      const envVar = process.env[key]
+      const blacklistedArray = optionsUsed.blacklistedEnv[key]
+
+      if (envVar && blacklistedArray.includes(envVar)) {
+        this.suppressedRoutes = true
+        break
+      }
+    }
+  }
+
   expressRouterPrep() {
     // placeholder
   }
 
   expressRouter(verb, expressPath) {
+    this.confPrep()
     this.expressRouterPrep()
 
     const express = require('express')
