@@ -1,0 +1,5 @@
+{
+  "blacklistedEnv": {
+    "NODE_ENV": ["production"]
+  }
+}
