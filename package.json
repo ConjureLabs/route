@@ -23,6 +23,9 @@
     "node",
     "routes"
   ],
+  "engines": {
+    "node": ">=12.x.x"
+  },
   "repository": "ConjureLabs/route",
   "license": "MIT",
   "bugs": "https://github.com/ConjureLabs/route/issues",
