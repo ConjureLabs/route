@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:12.x.x
+      - image: circleci/node:12.18.3
         environment:
           NODE_ENV: test
 
