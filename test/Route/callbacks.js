@@ -1,4 +1,4 @@
-const { test } = require('ava')
+const test = require('ava')
 const Route = require('../../')
 
 test('Route should return expected results', t => {

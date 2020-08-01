@@ -4,8 +4,15 @@
   "description": "Express routes made easy",
   "main": "index.js",
   "scripts": {
-    "lint": "bash ./bash/lint.sh",
-    "test": "bash ./bash/test.sh"
+    "lint": "npx eslint && echo \"Lints passed\"",
+    "test": "npx ava -v"
+  },
+  "ava": {
+    "files": [
+      "test/**/*",
+      "!test/**/helpers"
+    ],
+    "failFast": true
   },
   "files": [
     "index.js",

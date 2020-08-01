@@ -1,4 +1,4 @@
-const { test } = require('ava')
+const test = require('ava')
 const path = require('path')
 const express = require('express')
 const syncCrawl = require('../../sync-crawl')
@@ -111,7 +111,7 @@ test('should return expected results when there are several handlers and dirs', 
   })
 })
 
-test('should return expected results when there are several handlers and dirs', t => {
+test('should return expected results when there are several handlers and dirs (II)', t => {
   const router = new Router()
   router.use(crawl('routes-02'))
 
@@ -257,7 +257,7 @@ test('should honor multiple of one verb, ordered', t => {
   })
 })
 
-test('should honor multiple of one verb, ordered', t => {
+test('should honor multiple of one verb, ordered (II)', t => {
   const router = new Router()
   router.use(crawl('routes-06'))
   
