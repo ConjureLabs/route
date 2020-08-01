@@ -57,6 +57,31 @@ function setResolvedConf(routeInstance, confPaths) {
   routeInstance.resolvedConf = resolvedConf
 }
 
+function ensureInstance(exported) {
+  const Route = require('./')
+
+  if (exported instanceof Route) {
+    return exported
+  }
+
+  const route = new Route()
+
+  if (typeof exported === 'function') {
+    route.push(exported)
+  } else if (Array.isArray(exported)) {
+    for (let i = 0; i < exported.length; i++) {
+      if (typeof exported[i] !== 'function') {
+        throw new Error('Expected an array of functions, but got a cell type of ' + (typeof exported[i]))
+      }
+      route.push(exported[i])
+    }
+  } else {
+    throw new Error('Unexpected export type. Got ' + (typeof exported))
+  }
+
+  return route
+}
+
 function syncCrawlRoutesDir(rootpath, options = {}) {
   const log = new Logging()
   let firstCrawl = true
@@ -180,6 +205,8 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
               routePath,
               verb: mapping.verb
             })
+          } else {
+            mapping.routeInstance = ensureInstance(mapping.routeInstance)
           }
           // repeated check in case the above handler is not used or is not effective
           if (!mapping.routeInstance.expressRouter) {

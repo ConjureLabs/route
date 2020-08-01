@@ -385,3 +385,51 @@ test('should be able to require syncCrawl directly from module', t => {
   const syncCrawl2 = require('../../').syncCrawl
   t.is(syncCrawl2, syncCrawl)
 })
+
+test('should honor multiple of one verb, ordered (III)', t => {
+  const router = new Router()
+  router.use(crawl('routes-10'))
+  
+  router.handle({ url: '/without-wildcard/more-specific', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'SPECIFIC')
+    }
+  })
+  router.handle({ url: '/without-wildcard', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'TOP')
+    }
+  })
+
+  router.handle({ url: '/with-wildcard/more-specific', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'TOP')
+    }
+  })
+  router.handle({ url: '/with-wildcard', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'TOP')
+    }
+  })
+})
+
+test('should go throuh sepcific routes before param routes (II)', t => {
+  const router = new Router()
+  router.use(crawl('routes-11'))
+  
+  router.handle({ url: '/me', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'from ME')
+    }
+  })
+  router.handle({ url: '/abc', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'from ID')
+    }
+  })
+  router.handle({ url: '/xyz', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'hit')
+    }
+  })
+})
