@@ -74,7 +74,7 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
   const verbKeys = Object.keys(verbLookup)
 
   function getRoutes(dirPath, props = {}) {
-    const { uriPathTokens = [], confPaths = [] } = props
+    let { uriPathTokens = [], confPaths = [] } = props
 
     const base = path.parse(dirPath).base
 

@@ -1,11 +1,6 @@
 const Route = require('@conjurelabs/route')
 
-const route = new Route({
-  requireLoggedIn: false,
-  blacklistedEnv: {
-    NODE_ENV: ['production']
-  }
-})
+const route = new Route()
 
 route.push((req, res) => {
   const lines = []

@@ -1,8 +1,6 @@
 const Route = require('@conjurelabs/route')
 
-const route = new Route({
-  requireLoggedIn: false
-})
+const route = new Route()
 
 route.push((req, res) => {
   req.session.id = 123
