@@ -243,7 +243,31 @@ fileHandler: (content, {
 }) => { ... }
 ```
 
-### Options
+### Config Options
+
+Route instances take in a hash of configuration options, which apply route handlers.
+
+```js
+const route = new Route({
+  // ...
+})
+```
+
+You can also set these in `routes.json` files in the route tree. Configuration is resolved, and any inline configuration will override resolved values.
+
+```
+.
+└── routes
+    ├─── routes.json      # { a: 123 }
+    ├─── account
+    │   ├── routes.json   # { b: 456 }
+    │   ├── get.js
+    └── get.js (wildcard)
+```
+
+In this example, where `/routes/get.js` has `new Route()`, it will have a resolved config of `{ a: 123 }`,
+
+In `/routes/account/get.js` where `new Route({ a: 789 })` has an inline config, the instance will have a resolved config of `{ a: 789, b: 456 }`.
 
 #### Blacklisted Env Vars
 
