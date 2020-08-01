@@ -385,3 +385,30 @@ test('should be able to require syncCrawl directly from module', t => {
   const syncCrawl2 = require('../../').syncCrawl
   t.is(syncCrawl2, syncCrawl)
 })
+
+test('should honor multiple of one verb, ordered (III)', t => {
+  const router = new Router()
+  router.use(crawl('routes-10'))
+  
+  router.handle({ url: '/without-wildcard/more-specific', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'SPECIFIC')
+    }
+  })
+  router.handle({ url: '/without-wildcard', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'TOP')
+    }
+  })
+
+  router.handle({ url: '/with-wildcard/more-specific', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'TOP')
+    }
+  })
+  router.handle({ url: '/with-wildcard', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'TOP')
+    }
+  })
+})
