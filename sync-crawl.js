@@ -214,6 +214,12 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
         0
     })
 
+    // hydrating confs
+    for (let i = 0; i < files.length; i++) {
+      setResolvedConf(files[i].routeInstance, confPaths)
+      files[i].routeInstance.confPrep()
+    }
+
     // 1. hoisting wildcard routes to top of handlers
     const wildcardIndexes = []
     for (let i = 0; i < files.length; i++) {
@@ -228,7 +234,6 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
         routePath: `/${uriPathTokens.join('/')}*`,
         filePath: mapping.filePath
       })
-      setResolvedConf(mapping.routeInstance, confPaths)
       const newRoute = mapping.routeInstance.expressRouter(mapping.verb, '/' + uriPathTokens.join('/'))
       newRoute.filePath = mapping.filePath
       routes.push(newRoute)
@@ -263,7 +268,6 @@ function syncCrawlRoutesDir(rootpath, options = {}) {
         routePath: `/${uriPathTokens.join('/')}`,
         filePath: mapping.filePath
       })
-      setResolvedConf(mapping.routeInstance, confPaths)
       const newRoute = mapping.routeInstance.expressRouter(mapping.verb, '/' + uriPathTokens.join('/'))
       newRoute.filePath = mapping.filePath
       routes.push(newRoute)
