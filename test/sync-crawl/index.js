@@ -412,3 +412,19 @@ test('should honor multiple of one verb, ordered (III)', t => {
     }
   })
 })
+
+test('should go throuh sepcific routes before param routes (II)', t => {
+  const router = new Router()
+  router.use(crawl('routes-11'))
+  
+  router.handle({ url: '/me', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'from ME')
+    }
+  })
+  router.handle({ url: '/abc', method: 'GET' }, {
+    send: val => {
+      t.is(val, 'from ID')
+    }
+  })
+})
