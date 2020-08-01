@@ -21,7 +21,7 @@
   "bugs": "https://github.com/ConjureLabs/route/issues",
   "homepage": "https://github.com/ConjureLabs/route#readme",
   "dependencies": {
-    "@conjurelabs/err": "0.0.2",
+    "@conjurelabs/err": "1.0.1",
     "@conjurelabs/utils": "0.3.0",
     "cors": "2.8.5",
     "debug": "4.1.1"
@@ -30,11 +30,10 @@
     "express": ">=4"
   },
   "devDependencies": {
-    "ava": "0.25.0",
-    "babel-eslint": "9.0.0",
-    "eslint": "5.6.0",
-    "express": "4.16.3",
-    "jscs": "3.0.7",
-    "supertest": "3.0.0"
+    "ava": "3.11.0",
+    "babel-eslint": "10.1.0",
+    "eslint": "7.6.0",
+    "express": "4.17.1",
+    "supertest": "4.0.2"
   }
 }
