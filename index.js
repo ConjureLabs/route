@@ -11,7 +11,6 @@ const inlineConf = Symbol('Inline conf')
 const defaultOptions = {
   blacklistedEnv: {},
   wildcard: false,
-  skippedHandler: null,
   cors: null
 }
 
@@ -106,7 +105,6 @@ class Route extends Array {
     }
 
     this.wildcardRoute = optionsUsed.wildcard
-    this.skippedHandler = optionsUsed.skippedHandler
     this.cors = optionsUsed.cors
 
     for (const handlerKey in customHandlers) {
@@ -167,7 +165,6 @@ class Route extends Array {
   get copy() {
     const copy = new Route()
     copy.wildcardRoute = this.wildcard
-    copy.skippedHandler = this.skippedHandler
     copy.cors = this.cors
     copy.suppressedRoutes = this.suppressedRoutes
     copy.push(...this.slice())
