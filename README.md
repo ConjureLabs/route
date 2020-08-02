@@ -313,26 +313,6 @@ route.push(async (req, res) => {
 module.exports = route
 ```
 
-#### Skipped Handler
-
-If a route is skipped, because of invalid criteria like not passing a custom `requireToken` check, then it will, by default, continue through the Express routes matching the path. To override that, you can supply `skippedHandler`.
-
-```js
-const route = new Route({
-  requireToken: true, // assuming custom handler set
-  skippedHandler: async (req, res) => {
-    // ...
-  }
-})
-
-route.push(async (req, res) => {
-  // if this route is not executed, because the user session did not meet `requireToken` criteria,
-  // then `skippedHandler` will be called instead of this or any later handlers
-})
-```
-
-This can be used to force 404s.
-
 #### CORS
 
 If you need to use cross-origin routes, you can pass `cors` in the initial config. Any options will be passed on to the [Express cors module](https://github.com/expressjs/cors#readme), so check out their readme for any further details.
