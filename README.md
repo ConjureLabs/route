@@ -36,7 +36,7 @@ yarn add @conjurelabs/route
 
 ### Async vs Normal Handlers
 
-You can use either. The work virtually the same way.
+Exprss supports `async` routes, which works nearly the same way as a normal function.
 
 ```js
 // normal
@@ -50,7 +50,9 @@ route.push(async (req, res, next) => {
 })
 ```
 
-One important difference is how thrown errors are handled. An error thrown in a normal (non-async) handler will raise an exception. But in an async handler a thrown error will cause `next(err)`.
+Normally you'd need to wrap `await`s with `try {} catch {}`, and pass errors to `next()` manually.
+
+This library auto-wraps `async` functions and passes errors directly to `next` for you.
 
 ```js
 route.push(async (req, res) => {
