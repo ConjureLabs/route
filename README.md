@@ -64,6 +64,18 @@ route.push(async (req, res) => {
 })
 ```
 
+### Mounting routes in Express
+
+Each `Route` instance has a helper which converts the route handlers into a proper Express router.
+
+```js
+const routeInstance = require('./my-route')
+
+const router = routeInstance.expressRouter('get', '/my/route/path')
+
+server.use(router)
+```
+
 ### Routes Structure
 
 Routes need to be within a directory.
