@@ -97,23 +97,31 @@ async function main() {
     }
   })
 
-  // 'middleware' type needs to come first
-  w.sortIdentities((a, b) => {
-    if (a === 'middleware') {
-      return -1
-    }
-    if (b === 'middleware') {
-      return 1
-    }
-    return 0
-  })
+  w.orderIdentities([
+    'middleware',
+    'middleware-config'
+  ])
 
   w.treatment('middleware', ({ dirent, dir, context }) => {
     const filename = dirent.name.replace(/\.js$/, '')
     context.middleware[filename] = path.resolve(dir, dirent.name)
   })
 
-  const result = await w.start({ middleware: [] })
+  w.treatment('middleware-config', ({ dirent, dir, context }) => {
+    const filePath = path.resolve(dir, dirent.name)
+    const localConfig = require(filePath)
+    
+    for (let key in localConfig) {
+      if (typeof localConfig[key] === 'boolean') {
+        context.flags[key] = localConfig[key]
+      }
+    }
+  })
+
+  const result = await w.start({
+    middleware: [],
+    flags: {}
+  })
   
   console.log(result)
 }
