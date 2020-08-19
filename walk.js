@@ -7,7 +7,7 @@ class Walk {
   constructor(dir) {
     this.baseDir = dir
     this.indentifiers = []
-    this.identitiesSort = () => 0
+    this.order = []
     this.treatments = {}
 
     return this
@@ -18,8 +18,8 @@ class Walk {
     return this
   }
 
-  sortIdentities(fn) {
-    this.identitiesSort = fn
+  orderIdentities(order) {
+    this.order = deepClone(order)
     return this
   }
 
@@ -28,7 +28,7 @@ class Walk {
     return this
   }
 
-  async start(context = {}) {
+  async start(baseContext = {}) {
     const indentifiers = this.indentifiers.concat((dirent, dir) => {
       if (dirent.isDirectory()) {
         return directorySym
@@ -37,13 +37,12 @@ class Walk {
 
     // traverses a directory, returning an array of objects, representing files + specific directories
     // { dirent, dir, context, identity }
-    async function walkDir(dir, context = {}) {
+    async function walkDir(dir, parentContext) {
       const dirents = await fs.readdir(dir, { withFileTypes: true })
       const collection = [] // [{ dirent, identity }]
-      const localContext = deepClone(context)
+      let localContext = deepClone(parentContext)
 
       // determine ids
-      getDirentIdentities:
       for (let i = 0; i < dirents.length; i++) {
         const collectionItem = {
           dirent: dirents[i],
@@ -59,36 +58,72 @@ class Walk {
             (typeof identity === 'symbol')
           )) {
             collectionItem.identity = identity
-            continue getDirentIdentities
+            break
           }
         }
       }
 
       // sort collection of dirents, by identity
-      // but keep directorySym dirents at top,
-      // so they can be walked
+      // but keep directorySym dirents at the bottom,
+      // so they can be walked after context are filled in and locked
       collection.sort((itemA, itemB) => {
         if (itemA.identity === directorySym) {
-          return -1
-        }
-        if (itemB.identity === directorySym) {
           return 1
         }
-        return this.identitiesSort(itemA.identity, itemB.identity)
+        if (itemB.identity === directorySym) {
+          return -1
+        }
+
+        const indexA = this.order.indexOf(itemA.identity)
+        const indexB = this.order.indexOf(itemB.identity)
+
+        if (indexA > -1 && indexB === -1) {
+          return -1
+        }
+        if (indexA === -1 && indexB > -1) {
+          return 1
+        }
+
+        return indexA < indexB ? -1 :
+          indexA > indexB ? 1 :
+          itemA.dirent.name.toLowerCase().localeCompare(itemB.dirent.name.toLowerCase())
       })
 
-      const pendingSubDirs = []
-
+      // building out a list of pending sub-directories
+      // this will leave `collection` clear of directories
+      const pendingSubDirPaths = []
       do {
-        if (!collection.length || collection[0].identity !== directorySym) {
+        if (!collection.length || collection[ collection.length - 1 ].identity !== directorySym) {
           break
         }
 
-        const collectionItem = collection.shift()
+        const collectionItem = collection.pop()
         const subDir = path.resolve(dir, collectionItem.dirent.name)
-        pendingSubDirs.push(walkDir.call(this, subDir, localContext))
+        pendingSubDirPaths.unshift(subDir)
       } while (true)
 
+      // walkDir.call(this, subDir, contexts)
+      
+      // processing non-dir, sorted, dirents
+      for (let i = 0; i < collection.length; i++) {
+        const collectionItem = collection[i]
+        const identity = collectionItem.identity
+
+        if (typeof identity === 'string' && this.treatments[identity]) {
+          this.treatments[identity](collectionItem)
+        }
+      }
+
+      // locking context before walking sub-dirs
+      localContext = deepFreeze(localContext)
+
+      // initiate walking of subdirs
+      const pendingSubDirs = []
+      for (let i = 0; i < pendingSubDirPaths.length; i++) {
+        pendingSubDirs.push(walkDir.call(this, pendingSubDirPaths[i], localContext))
+      }
+
+      // wrap up walking of subdirs & build out results
       const subDirs = await Promise.all(pendingSubDirs)
       const result = [...collection]
       for (let i = 0; i < subDirs.length; i++) {
@@ -97,7 +132,8 @@ class Walk {
 
       return result
     }
-    const result = await walkDir.call(this, this.baseDir, context)
+
+    const walked = await walkDir.call(this, this.baseDir, baseContext)
     return result
   }
 }
@@ -105,5 +141,20 @@ class Walk {
 function deepClone(base) {
   return JSON.parse(JSON.stringify(base))
 }
+
+function deepFreeze(object) {
+  const propNames = Object.getOwnPropertyNames(object)
+
+  for (let name of propNames) {
+    let value = object[name]
+
+    if (value && typeof value === 'object') { 
+      deepFreeze(value)
+    }
+  }
+
+  return Object.freeze(object)
+}
+
 
 module.exports = Walk
