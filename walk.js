@@ -102,20 +102,19 @@ class Walk {
         pendingSubDirPaths.unshift(subDir)
       } while (true)
 
-      // walkDir.call(this, subDir, contexts)
-      
       // processing non-dir, sorted, dirents
       for (let i = 0; i < collection.length; i++) {
         const collectionItem = collection[i]
         const identity = collectionItem.identity
 
         if (typeof identity === 'string' && this.treatments[identity]) {
-          this.treatments[identity](collectionItem)
+          if (this.treatments[identity].constructor.name === 'AsyncFunction') {
+            await this.treatments[identity](collectionItem)
+          } else {
+            this.treatments[identity](collectionItem)
+          }
         }
       }
-
-      // locking context before walking sub-dirs
-      localContext = deepFreeze(localContext)
 
       // initiate walking of subdirs
       const pendingSubDirs = []
@@ -134,27 +133,12 @@ class Walk {
     }
 
     const walked = await walkDir.call(this, this.baseDir, baseContext)
-    return result
+    return walked
   }
 }
 
 function deepClone(base) {
   return JSON.parse(JSON.stringify(base))
 }
-
-function deepFreeze(object) {
-  const propNames = Object.getOwnPropertyNames(object)
-
-  for (let name of propNames) {
-    let value = object[name]
-
-    if (value && typeof value === 'object') { 
-      deepFreeze(value)
-    }
-  }
-
-  return Object.freeze(object)
-}
-
 
 module.exports = Walk

@@ -1,4 +1,4 @@
-// const fs = require('fs').promises
+const fs = require('fs').promises
 const path = require('path')
 // const sortInsensitive = require('@conjurelabs/utils/Array/sort-insensitive')
 // const equalWidths = require('@conjurelabs/utils/String/equal-widths')
@@ -102,7 +102,19 @@ async function main() {
     'middleware-config'
   ])
 
-  w.treatment('middleware', ({ dirent, dir, context }) => {
+  w.treatment('middleware', async ({ dirent, dir, context }) => {
+    const middlewareDir = path.resolve(dir, dirent.name)
+    const dirents = await fs.readdir(middlewareDir, { withFileTypes: true })
+
+    for (let i = 0; i < dirents.length; i++) {
+      if (!dirents[i].isFile() && !/\.js$/.test(dirents[i].name)) {
+        continue
+      }
+
+      context.middlewarePaths[ dirents[i].name.replace(/\.js$/, '') ] = async (req, res, next, skipAll) => {
+        const middlewareFunc = require( path.resolve(middlewareDir, dirent[i].name) )
+      }
+    }
     const filename = dirent.name.replace(/\.js$/, '')
     context.middleware[filename] = path.resolve(dir, dirent.name)
   })
@@ -118,9 +130,14 @@ async function main() {
     }
   })
 
+  w.treatment('route', ({ dirent, dir, context }) => {
+    console.log('YO ROUTE', dir, dirent.name)
+  })
+
   const result = await w.start({
-    middleware: [],
-    flags: {}
+    middlewarePaths: [],
+    flags: {},
+    middleware: {}
   })
   
   console.log(result)
