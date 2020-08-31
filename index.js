@@ -71,6 +71,8 @@ const TEST_DIR = '/Users/mars/tmarshall/tonic/app/api/routes'
 // }
 // main()
 
+const jsExtensionExpr = /\.js$/
+
 async function main() {
   const Walk = require('./walk')
 
@@ -107,15 +109,15 @@ async function main() {
     const dirents = await fs.readdir(middlewareDir, { withFileTypes: true })
 
     for (let i = 0; i < dirents.length; i++) {
-      if (!dirents[i].isFile() && !/\.js$/.test(dirents[i].name)) {
+      if (!dirents[i].isFile() && !jsExtensionExpr.test(dirents[i].name)) {
         continue
       }
 
-      context.middlewarePaths[ dirents[i].name.replace(/\.js$/, '') ] = async (req, res, next, skipAll) => {
+      context.middlewarePaths[ dirents[i].name.replace(jsExtensionExpr, '') ] = async (req, res, next, skipAll) => {
         const middlewareFunc = require( path.resolve(middlewareDir, dirent[i].name) )
       }
     }
-    const filename = dirent.name.replace(/\.js$/, '')
+    const filename = dirent.name.replace(jsExtensionExpr, '')
     context.middleware[filename] = path.resolve(dir, dirent.name)
   })
 
@@ -130,8 +132,9 @@ async function main() {
     }
   })
 
-  w.treatment('route', ({ dirent, dir, context }) => {
-    console.log('YO ROUTE', dir, dirent.name)
+  w.treatment('route', attributes => {
+    const { dirent, dir } = attributes
+    attributes.handler = require(path.resolve(dir, dirent.name))
   })
 
   const result = await w.start({
@@ -139,7 +142,24 @@ async function main() {
     flags: {},
     middleware: {}
   })
-  
+
   console.log(result)
+
+  const routeGroupings = result.reduce((groupings, { context, identity, handler, dir }) => {
+    if (identity !== 'route' || identity !== 'middleware-config') {
+      return groupings
+    }
+
+    if (!groupings[dir]) {
+      groupings[dir] = []
+    }
+    groupings[dir].push([handler, context])
+
+    return groupings
+  }, {})
+
+  return Object.keys(routeGroupings).map(dir => {
+    const grouping = routeGroupings[dir]
+  })
 }
 main()
