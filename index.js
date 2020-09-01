@@ -145,18 +145,28 @@ async function main() {
 
   console.log(result)
 
-  const routeGroupings = result.reduce((groupings, { context, identity, handler, dir }) => {
-    if (identity !== 'route' || identity !== 'middleware-config') {
+  // grouping results by dir + filtering out non-relevant results
+  const routeGroupings = result.reduce((groupings, attributes) => {
+    const { identity, dir } = attributes
+
+    if (identity !== 'route' && identity !== 'middleware-config') {
       return groupings
     }
 
     if (!groupings[dir]) {
       groupings[dir] = []
     }
-    groupings[dir].push([handler, context])
+    groupings[dir].push(attributes)
 
     return groupings
   }, {})
+
+  // getting sorted keys, which would move :id params above specific paths
+  const routeGroupingKeys = Object.keys(routeGroupings)
+
+  console.log(routeGroupings)
+
+
 
   return Object.keys(routeGroupings).map(dir => {
     const grouping = routeGroupings[dir]
