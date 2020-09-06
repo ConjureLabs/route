@@ -73,103 +73,194 @@ const TEST_DIR = '/Users/mars/tmarshall/tonic/app/api/routes'
 
 const jsExtensionExpr = /\.js$/
 
-async function main() {
-  const Walk = require('./walk')
+// async function main() {
+//   const Walk = require('./walk')
 
-  const w = new Walk(TEST_DIR)
+//   const w = new Walk(TEST_DIR)
 
-  const verbs = ['get', 'post', 'put', 'patch', 'delete', 'options', 'all']
+//   const verbs = ['get', 'post', 'put', 'patch', 'delete', 'options', 'all']
 
-  w.identify((dirent, dir) => {
-    if (dirent.name === '.middleware' && dirent.isDirectory()) {
+//   w.identify((dirent, dir) => {
+//     if (dirent.name === '.middleware' && dirent.isDirectory()) {
+//       return 'middleware'
+//     }
+
+//     if (!(dirent.isFile() && dirent.name.substr(-3) === '.js')) {
+//       return
+//     }
+
+//     if (dirent.name === '.middleware.js') {
+//       return 'middleware-config'
+//     }
+
+//     const verbMatch = dirent.name.match(/^(\w+)\./)
+//     if (verbMatch && verbs.includes(verbMatch[1])) {
+//       return 'route'
+//     }
+//   })
+
+//   w.orderIdentities([
+//     'middleware',
+//     'middleware-config'
+//   ])
+
+//   w.treatment('middleware', async ({ dirent, dir, context }) => {
+//     const middlewareDir = path.resolve(dir, dirent.name)
+//     const dirents = await fs.readdir(middlewareDir, { withFileTypes: true })
+
+//     for (let i = 0; i < dirents.length; i++) {
+//       if (!dirents[i].isFile() && !jsExtensionExpr.test(dirents[i].name)) {
+//         continue
+//       }
+
+//       context.middlewarePaths[ dirents[i].name.replace(jsExtensionExpr, '') ] = async (req, res, next, skipAll) => {
+//         const middlewareFunc = require( path.resolve(middlewareDir, dirent[i].name) )
+//       }
+//     }
+//     const filename = dirent.name.replace(jsExtensionExpr, '')
+//     context.middleware[filename] = path.resolve(dir, dirent.name)
+//   })
+
+//   w.treatment('middleware-config', ({ dirent, dir, context }) => {
+//     const filePath = path.resolve(dir, dirent.name)
+//     const localConfig = require(filePath)
+    
+//     for (let key in localConfig) {
+//       if (typeof localConfig[key] === 'boolean') {
+//         context.flags[key] = localConfig[key]
+//       }
+//     }
+//   })
+
+//   w.treatment('route', attributes => {
+//     const { dirent, dir } = attributes
+//     attributes.handler = require(path.resolve(dir, dirent.name))
+//   })
+
+//   const result = await w.start({
+//     middlewarePaths: [],
+//     flags: {},
+//     middleware: {}
+//   })
+
+//   console.log(result)
+
+//   // grouping results by dir + filtering out non-relevant results
+//   const routeGroupings = result.reduce((groupings, attributes) => {
+//     const { identity, dir } = attributes
+
+//     if (identity !== 'route' && identity !== 'middleware-config') {
+//       return groupings
+//     }
+
+//     if (!groupings[dir]) {
+//       groupings[dir] = []
+//     }
+//     groupings[dir].push(attributes)
+
+//     return groupings
+//   }, {})
+
+//   // getting sorted keys, which would move :id params above specific paths
+//   const routeGroupingKeys = Object.keys(routeGroupings)
+
+//   console.log(routeGroupings)
+
+
+
+//   return Object.keys(routeGroupings).map(dir => {
+//     const grouping = routeGroupings[dir]
+//   })
+// }
+// main()
+
+// attributes -> { flags: { [key]: bool }, middleware: { [key]: function } }
+// all objects are flat
+async function walkDir(dir, attributes) {
+  const dirDirents = await fs.readdir(dir, { withFileTypes: true })
+  let flags, fusedFlags
+  let middleware, fusedMiddleware
+
+  for (let i = 0; i < dirents.length; i++) {
+    const dirent = dirDirents[i]
+    const type = direntType(dirent)
+    let subdirs = []
+    const handlers = []
+
+    switch (type) {
+      case 'dir':
+        subdirs.push(dirent.name)
+        break
+
+      case 'handler':
+        handlers.push(dirent.name)
+        break
+
+      case 'flags':
+        flags = require(path.resolve(dir, dirent.name))
+        break
+
+      case 'middleware':
+        middleware = walkMiddleware(path.resolve(dir, dirent.name))
+        break
+    }
+
+    const wrap
+
+    if (flags) {
+      fusedFlags = { ...attributes.flags, ...flags }
+    }
+
+    if (middleware) {
+      fusedMiddleware = { ...attributes.middleware, ...middleware }
+    }
+
+    if (subdirs) {
+      subdirs = subdirs.map(subdir => walkDir(
+        path.resolve(dir, subdir),
+        {
+          flags: fusedFlags || flags,
+          middleware: fusedMiddleware || middleware
+        }
+      ))
+    }
+    
+  }
+}
+
+async function walkMiddleware(dir) {
+  const dirDirents = await fs.readdir(dir, { withFileTypes: true })
+  const middleware = {}
+
+  for (let i = dirDirents.length; i++) {
+    const dirent = dirDirents[i]
+
+    if (dirent.isFile() && jsExtensionExpr.test(dirent.name)) {
+      middleware[dirent.name] = require(path.resolve(dir, dirent.name))
+    }
+  }
+
+  return middleware
+}
+
+// can return undefined
+function direntType(dirent) {
+  if (dirent.isFile()) {
+    if (dirent.name === '.middleware.flags.js') {
+      return 'flags'
+    }
+    if (jsExtensionExpr.test(dirent.name)) {
+      return 'handler'
+    }
+  } else if (dirent.isDirectory()) {
+    if (dirent.name === '.middleware') {
       return 'middleware'
     }
-
-    if (!(dirent.isFile() && dirent.name.substr(-3) === '.js')) {
-      return
-    }
-
-    if (dirent.name === '.middleware.js') {
-      return 'middleware-config'
-    }
-
-    const verbMatch = dirent.name.match(/^(\w+)\./)
-    if (verbMatch && verbs.includes(verbMatch[1])) {
-      return 'route'
-    }
-  })
-
-  w.orderIdentities([
-    'middleware',
-    'middleware-config'
-  ])
-
-  w.treatment('middleware', async ({ dirent, dir, context }) => {
-    const middlewareDir = path.resolve(dir, dirent.name)
-    const dirents = await fs.readdir(middlewareDir, { withFileTypes: true })
-
-    for (let i = 0; i < dirents.length; i++) {
-      if (!dirents[i].isFile() && !jsExtensionExpr.test(dirents[i].name)) {
-        continue
-      }
-
-      context.middlewarePaths[ dirents[i].name.replace(jsExtensionExpr, '') ] = async (req, res, next, skipAll) => {
-        const middlewareFunc = require( path.resolve(middlewareDir, dirent[i].name) )
-      }
-    }
-    const filename = dirent.name.replace(jsExtensionExpr, '')
-    context.middleware[filename] = path.resolve(dir, dirent.name)
-  })
-
-  w.treatment('middleware-config', ({ dirent, dir, context }) => {
-    const filePath = path.resolve(dir, dirent.name)
-    const localConfig = require(filePath)
-    
-    for (let key in localConfig) {
-      if (typeof localConfig[key] === 'boolean') {
-        context.flags[key] = localConfig[key]
-      }
-    }
-  })
-
-  w.treatment('route', attributes => {
-    const { dirent, dir } = attributes
-    attributes.handler = require(path.resolve(dir, dirent.name))
-  })
-
-  const result = await w.start({
-    middlewarePaths: [],
-    flags: {},
-    middleware: {}
-  })
-
-  console.log(result)
-
-  // grouping results by dir + filtering out non-relevant results
-  const routeGroupings = result.reduce((groupings, attributes) => {
-    const { identity, dir } = attributes
-
-    if (identity !== 'route' && identity !== 'middleware-config') {
-      return groupings
-    }
-
-    if (!groupings[dir]) {
-      groupings[dir] = []
-    }
-    groupings[dir].push(attributes)
-
-    return groupings
-  }, {})
-
-  // getting sorted keys, which would move :id params above specific paths
-  const routeGroupingKeys = Object.keys(routeGroupings)
-
-  console.log(routeGroupings)
-
-
-
-  return Object.keys(routeGroupings).map(dir => {
-    const grouping = routeGroupings[dir]
-  })
+    return 'dir'
+  }
 }
-main()
+
+module.exports = async function walk(dir) {
+
+}
+module.expors(TEST_DIR)
