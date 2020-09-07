@@ -72,6 +72,7 @@ const TEST_DIR = '/Users/mars/tmarshall/tonic/app/api/routes'
 // main()
 
 const jsExtensionExpr = /\.js$/
+const preDotExpr = /^[^\.]+/
 
 // async function main() {
 //   const Walk = require('./walk')
@@ -174,20 +175,38 @@ const jsExtensionExpr = /\.js$/
 // }
 // main()
 
-// attributes -> { flags: { [key]: bool }, middleware: { [key]: function }, methods: [], path: [] }
+const validHandlerVerbs = ['all', 'get', 'post', 'put', 'patch', 'delete']
+
+class RouterDefinition {
+  constructor(baseDir, dir, verb, methods) {
+    // adding to the tokens of the express route, based on the current directory being crawled
+    // a folder starting with a $ will be considered a req param
+    // (The : used in express does not work well in directory naming, and will mess up directory searching)
+    this.routerPath = path.relative(baseDir, dir).replace(/(^|\/)\$/, '$1:')
+    this.verb = verb
+    this.methods = methods
+    this.depth = routePath.split('/').length
+  }
+
+  get router() {
+    const router = express.Router()
+    router[this.verb](this.routerPath, ...this.methods)
+    return router
+  }
+}
+
+// attributes -> { flags: { [key]: bool }, middleware: { [key]: function } }
 // all objects are flat
-// `methods` is an array of arrays, where indexes signify route depth
-// `path` is a an array of path strings (starting at root) that also signify depth
 async function walkDir(dir, attributes) {
   const dirDirents = await fs.readdir(dir, { withFileTypes: true })
   let flags, fusedFlags
   let middleware, fusedMiddleware
+  let subdirs = []
+  const handlers = []
 
   for (let i = 0; i < dirents.length; i++) {
     const dirent = dirDirents[i]
     const type = direntType(dirent)
-    let subdirs = []
-    const handlers = []
 
     switch (type) {
       case 'dir':
@@ -211,7 +230,6 @@ async function walkDir(dir, attributes) {
   if (!handlers.length && !subDirs.length) {
     return []
   }
-  attributes.methods[]
 
   if (flags) {
     fusedFlags = { ...attributes.flags, ...flags }
@@ -221,30 +239,26 @@ async function walkDir(dir, attributes) {
     fusedMiddleware = { ...attributes.middleware, ...middleware }
   }
 
-  const methods = []
-
-  for (let i = 0; i < handlers.length; i++) {
-    methods.push(...routeMethods(handlers[i], fusedMiddleware, fusedFlags))
-  }
-
-  methods.push(...(await Promise.all(subdirs)))
-
-
-
   if (subdirs) {
     subdirs = subdirs.map(subdir => walkDir(
       path.resolve(dir, subdir),
       {
         flags: fusedFlags || flags,
-        middleware: fusedMiddleware || middleware,
-        methods: attributes.methods
+        middleware: fusedMiddleware || middleware
       }
     ))
   }
 
-  
+  const routerDefs = []
+  for (let i = 0; i < handlers.length; i++) {
+    const verbMatch = handlers[i].match(preDotExpr)
+    const verb = verbMatch[0].toLowerCase()
+    routerDefs.push(
+      new RouterDefinition(baseDir, dir, verb, routeMethods(handlers[i], fusedMiddleware, fusedFlags))
+    )
+  }
 
-  return methods
+  return [ ...routerDefs, ...Promise.all(subdirs) ]
 }
 
 async function routeMethods(handler, middleware, flags) {
@@ -319,7 +333,10 @@ function direntType(dirent) {
       return 'flags'
     }
     if (jsExtensionExpr.test(dirent.name)) {
-      return 'handler'
+      const verbMatch = dirent.name.match(preDotExpr)
+      if (verbMatch && validHandlerVerbs.includes(verbMatch[0].toLowerCase())) {
+        return 'handler'
+      }
     }
   } else if (dirent.isDirectory()) {
     if (dirent.name === '.middleware') {
