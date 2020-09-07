@@ -1,5 +1,6 @@
 const fs = require('fs').promises
 const path = require('path')
+const express = require('express')
 // const sortInsensitive = require('@conjurelabs/utils/Array/sort-insensitive')
 // const equalWidths = require('@conjurelabs/utils/String/equal-widths')
 // const debug = require('debug')('route:syncCrawl')
@@ -186,11 +187,12 @@ class RouterDefinition {
     this.filename = filename
     this.verb = verb
     this.methods = methods
-    this.depth = routePath.split('/').length
+    this.depth = this.routerPath.split('/').length
   }
 
   get router() {
     const router = express.Router()
+    console.log('this.methods', this.methods)
     router[this.verb](this.routerPath, ...this.methods)
     return router
   }
@@ -205,7 +207,7 @@ async function walkDir(baseDir, dir, attributes) {
   let subdirs = []
   const handlers = []
 
-  for (let i = 0; i < dirents.length; i++) {
+  for (let i = 0; i < dirDirents.length; i++) {
     const dirent = dirDirents[i]
     const type = direntType(dirent)
 
@@ -228,7 +230,7 @@ async function walkDir(baseDir, dir, attributes) {
     }
   }
 
-  if (!handlers.length && !subDirs.length) {
+  if (!handlers.length && !subdirs.length) {
     return []
   }
 
@@ -256,21 +258,25 @@ async function walkDir(baseDir, dir, attributes) {
     const verbMatch = handlers[i].match(preDotExpr)
     const verb = verbMatch[0].toLowerCase()
     routerDefs.push(
-      { baseDir, dir, filename, verb, methods }
       new RouterDefinition({
         baseDir,
         dir,
         filename: handlers[i],
         verb,
         methods: routeMethods(handlers[i], fusedMiddleware, fusedFlags)
-      }
+      })
     )
   }
 
-  return [ ...routerDefs, ...Promise.all(subdirs) ]
+  subRouterDefs = await Promise.all(subdirs)
+  const results = [ ...routerDefs ]
+  for (let i = 0; i < subRouterDefs.length; i++) {
+    results.push(...subRouterDefs[i])
+  }
+  return results
 }
 
-async function routeMethods(handler, middleware, flags) {
+function routeMethods(handler, middleware, flags) {
   const fusedFlags = handler.middlewareFlags ? { ...flags, ...handler.middlewareFlags } : flags
   const methods = []
 
@@ -324,7 +330,7 @@ async function walkMiddleware(dir) {
   const dirDirents = await fs.readdir(dir, { withFileTypes: true })
   const middleware = {}
 
-  for (let i = dirDirents.length; i++) {
+  for (let i = 0; i < dirDirents.length; i++) {
     const dirent = dirDirents[i]
 
     if (dirent.isFile() && jsExtensionExpr.test(dirent.name)) {
@@ -358,6 +364,8 @@ function direntType(dirent) {
 module.exports = async function walk(dir) {
   const routerDefinitions = await walkDir(dir, dir, { flags: {}, middleware: {} })
 
+  console.log(routerDefinitions)
+
   routerDefinitions.sort((a, b) => {
     // compare depths - deeper routes (more specific)
     // will be mounted first
@@ -369,6 +377,7 @@ module.exports = async function walk(dir) {
     }
 
     // comparing route paths
+    console.log('a', a, 'b', b, 'a.routerPath', a.routerPath)
     const pathComparison = a.routerPath.localeCompare(b.routerPath)
     if (pathComparison !== 0) {
       return pathComparison
@@ -386,4 +395,4 @@ module.exports = async function walk(dir) {
   router.use(...subRouters)
   return router
 }
-module.expors(TEST_DIR)
+module.exports(TEST_DIR)
