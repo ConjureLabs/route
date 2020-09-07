@@ -174,8 +174,10 @@ const jsExtensionExpr = /\.js$/
 // }
 // main()
 
-// attributes -> { flags: { [key]: bool }, middleware: { [key]: function } }
+// attributes -> { flags: { [key]: bool }, middleware: { [key]: function }, methods: [], path: [] }
 // all objects are flat
+// `methods` is an array of arrays, where indexes signify route depth
+// `path` is a an array of path strings (starting at root) that also signify depth
 async function walkDir(dir, attributes) {
   const dirDirents = await fs.readdir(dir, { withFileTypes: true })
   let flags, fusedFlags
@@ -204,27 +206,94 @@ async function walkDir(dir, attributes) {
         middleware = walkMiddleware(path.resolve(dir, dirent.name))
         break
     }
+  }
 
-    const wrap
+  if (!handlers.length && !subDirs.length) {
+    return []
+  }
+  attributes.methods[]
 
-    if (flags) {
-      fusedFlags = { ...attributes.flags, ...flags }
+  if (flags) {
+    fusedFlags = { ...attributes.flags, ...flags }
+  }
+
+  if (middleware) {
+    fusedMiddleware = { ...attributes.middleware, ...middleware }
+  }
+
+  const methods = []
+
+  for (let i = 0; i < handlers.length; i++) {
+    methods.push(...routeMethods(handlers[i], fusedMiddleware, fusedFlags))
+  }
+
+  methods.push(...(await Promise.all(subdirs)))
+
+
+
+  if (subdirs) {
+    subdirs = subdirs.map(subdir => walkDir(
+      path.resolve(dir, subdir),
+      {
+        flags: fusedFlags || flags,
+        middleware: fusedMiddleware || middleware,
+        methods: attributes.methods
+      }
+    ))
+  }
+
+  
+
+  return methods
+}
+
+async function routeMethods(handler, middleware, flags) {
+  const fusedFlags = handler.middlewareFlags ? { ...flags, ...handler.middlewareFlags } : flags
+  const methods = []
+
+  const prep = (req, res, next) => {
+    req.__routeContext = { skip: false }
+    next()
+  }
+
+  methods.push(prep)
+
+  for (let key in fusedFlags) {
+    if (!fusedFlags[key]) {
+      continue
     }
 
-    if (middleware) {
-      fusedMiddleware = { ...attributes.middleware, ...middleware }
+    methods.push(wrappedRouteHandler(middleware[key], true))
+  }
+
+  methods.push(wrappedRouteHandler(handler, false))
+
+  return methods
+}
+
+function wrappedRouteHandler(handler, withSkip) {
+  const isAsync = handler.constructor.name === 'AsyncFunction'
+
+  return async (req, res, next) => {
+    if (req.__routeContext.skip) {
+      return next()
     }
 
-    if (subdirs) {
-      subdirs = subdirs.map(subdir => walkDir(
-        path.resolve(dir, subdir),
-        {
-          flags: fusedFlags || flags,
-          middleware: fusedMiddleware || middleware
-        }
-      ))
+    const skipMethod = withSkip ? req => { req.__routeContext.skip = true } : undefined
+
+    if (skipMethod) {
+      if (isAsync) {
+        await handler(req, res, next, skipMethod)
+      } else {
+        handler(req, res, next, skipMethod)
+      }
+    } else {
+      if (isAsync) {
+        await handler(req, res, next)
+      } else {
+        handler(req, res, next)
+      }
     }
-    
   }
 }
 
