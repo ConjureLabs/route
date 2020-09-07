@@ -192,7 +192,6 @@ class RouterDefinition {
 
   get router() {
     const router = express.Router()
-    console.log('this.methods', this.methods)
     router[this.verb](this.routerPath, ...this.methods)
     return router
   }
@@ -225,7 +224,7 @@ async function walkDir(baseDir, dir, attributes) {
         break
 
       case 'middleware':
-        middleware = walkMiddleware(path.resolve(dir, dirent.name))
+        middleware = await walkMiddleware(path.resolve(dir, dirent.name))
         break
     }
   }
@@ -247,8 +246,8 @@ async function walkDir(baseDir, dir, attributes) {
       baseDir,
       path.resolve(dir, subdir),
       {
-        flags: fusedFlags || flags,
-        middleware: fusedMiddleware || middleware
+        flags: fusedFlags || attributes.flags,
+        middleware: fusedMiddleware || attributes.middleware
       }
     ))
   }
@@ -263,7 +262,7 @@ async function walkDir(baseDir, dir, attributes) {
         dir,
         filename: handlers[i],
         verb,
-        methods: routeMethods(handlers[i], fusedMiddleware, fusedFlags)
+        methods: routeMethods(handlers[i], fusedMiddleware || attributes.middleware, fusedFlags || attributes.flags)
       })
     )
   }
@@ -289,6 +288,10 @@ function routeMethods(handler, middleware, flags) {
 
   for (let key in fusedFlags) {
     if (!fusedFlags[key]) {
+      continue
+    }
+
+    if (!middleware[key]) {
       continue
     }
 
@@ -334,7 +337,7 @@ async function walkMiddleware(dir) {
     const dirent = dirDirents[i]
 
     if (dirent.isFile() && jsExtensionExpr.test(dirent.name)) {
-      middleware[dirent.name] = require(path.resolve(dir, dirent.name))
+      middleware[dirent.name.replace(jsExtensionExpr, '')] = require(path.resolve(dir, dirent.name))
     }
   }
 
@@ -364,8 +367,6 @@ function direntType(dirent) {
 module.exports = async function walk(dir) {
   const routerDefinitions = await walkDir(dir, dir, { flags: {}, middleware: {} })
 
-  console.log(routerDefinitions)
-
   routerDefinitions.sort((a, b) => {
     // compare depths - deeper routes (more specific)
     // will be mounted first
@@ -377,7 +378,6 @@ module.exports = async function walk(dir) {
     }
 
     // comparing route paths
-    console.log('a', a, 'b', b, 'a.routerPath', a.routerPath)
     const pathComparison = a.routerPath.localeCompare(b.routerPath)
     if (pathComparison !== 0) {
       return pathComparison
@@ -395,4 +395,3 @@ module.exports = async function walk(dir) {
   router.use(...subRouters)
   return router
 }
-module.exports(TEST_DIR)
