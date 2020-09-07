@@ -178,11 +178,12 @@ const preDotExpr = /^[^\.]+/
 const validHandlerVerbs = ['all', 'get', 'post', 'put', 'patch', 'delete']
 
 class RouterDefinition {
-  constructor(baseDir, dir, verb, methods) {
+  constructor({ baseDir, dir, filename, verb, methods }) {
     // adding to the tokens of the express route, based on the current directory being crawled
     // a folder starting with a $ will be considered a req param
     // (The : used in express does not work well in directory naming, and will mess up directory searching)
     this.routerPath = path.relative(baseDir, dir).replace(/(^|\/)\$/, '$1:')
+    this.filename = filename
     this.verb = verb
     this.methods = methods
     this.depth = routePath.split('/').length
@@ -197,7 +198,7 @@ class RouterDefinition {
 
 // attributes -> { flags: { [key]: bool }, middleware: { [key]: function } }
 // all objects are flat
-async function walkDir(dir, attributes) {
+async function walkDir(baseDir, dir, attributes) {
   const dirDirents = await fs.readdir(dir, { withFileTypes: true })
   let flags, fusedFlags
   let middleware, fusedMiddleware
@@ -241,6 +242,7 @@ async function walkDir(dir, attributes) {
 
   if (subdirs) {
     subdirs = subdirs.map(subdir => walkDir(
+      baseDir,
       path.resolve(dir, subdir),
       {
         flags: fusedFlags || flags,
@@ -254,7 +256,14 @@ async function walkDir(dir, attributes) {
     const verbMatch = handlers[i].match(preDotExpr)
     const verb = verbMatch[0].toLowerCase()
     routerDefs.push(
-      new RouterDefinition(baseDir, dir, verb, routeMethods(handlers[i], fusedMiddleware, fusedFlags))
+      { baseDir, dir, filename, verb, methods }
+      new RouterDefinition({
+        baseDir,
+        dir,
+        filename: handlers[i],
+        verb,
+        methods: routeMethods(handlers[i], fusedMiddleware, fusedFlags)
+      }
     )
   }
 
@@ -347,6 +356,34 @@ function direntType(dirent) {
 }
 
 module.exports = async function walk(dir) {
+  const routerDefinitions = await walkDir(dir, dir, { flags: {}, middleware: {} })
 
+  routerDefinitions.sort((a, b) => {
+    // compare depths - deeper routes (more specific)
+    // will be mounted first
+    if (a.depth > b.depth) {
+      return -1
+    }
+    if (b.depth > a.depth) {
+      return 1
+    }
+
+    // comparing route paths
+    const pathComparison = a.routerPath.localeCompare(b.routerPath)
+    if (pathComparison !== 0) {
+      return pathComparison
+    }
+
+    // within same path - need to compare files themselves
+    // standard sort will keep `all` verbs at top
+    // (which we want)
+    return a.filename.localeCompare(b.filename)
+  })
+
+  // creating a top-level router to encompass the others
+  const router = express.Router()
+  const subRouters = routerDefinitions.map(def => def.router)
+  router.use(...subRouters)
+  return router
 }
 module.expors(TEST_DIR)
