@@ -18,10 +18,8 @@ class RouterDefinition {
     this.depth = this.routerPath.split('/').length
   }
 
-  get router() {
-    const router = express.Router()
+  addRoute(router) {
     router[this.verb](this.routerPath, ...this.methods)
-    return router
   }
 }
 
@@ -192,7 +190,7 @@ function direntType(dirent) {
   }
 }
 
-module.exports = async function walk(dir) {
+module.exports = async function walk(dir, existingRouter) {
   const routerDefinitions = await walkDir(dir, dir, { flags: {}, middleware: {} })
 
   routerDefinitions.sort((a, b) => {
@@ -218,8 +216,10 @@ module.exports = async function walk(dir) {
   })
 
   // creating a top-level router to encompass the others
-  const router = express.Router()
-  const subRouters = routerDefinitions.map(def => def.router)
-  router.use(...subRouters)
+  const router = existingRouter || express.Router()
+  for (let i = 0; i < routerDefinitions.length; i++) {
+    routerDefinitions[i].addRoute(router)
+  }
+
   return router
 }
