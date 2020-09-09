@@ -1,176 +1,228 @@
-const cors = require('cors')
-const { PermissionsError, ContentError } = require('@conjurelabs/err')
-const syncCrawl = require('./sync-crawl')
+const fs = require('fs').promises
+const path = require('path')
+const express = require('express')
 
-const applyCustomHandler = Symbol('Wrap one-off handler with custom static handler')
-const wrapWithExpressNext = Symbol('Wrap async handlers with express next()')
-const routeConfPrepped = Symbol('Route conf has been prepped?')
-const resolvedConf = Symbol('Resolved conf')
-const inlineConf = Symbol('Inline conf')
+const jsExtensionExpr = /\.js$/
+const preDotExpr = /^[^\.]+/
+const validHandlerVerbs = ['all', 'get', 'post', 'put', 'patch', 'delete']
 
-const defaultOptions = {
-  blacklistedEnv: {},
-  wildcard: false,
-  cors: null
+class RouterDefinition {
+  constructor({ baseDir, dir, filename, verb, methods }) {
+    // adding to the tokens of the express route, based on the current directory being crawled
+    // a folder starting with a $ will be considered a req param
+    // (The : used in express does not work well in directory naming, and will mess up directory searching)
+    this.routerPath = path.relative(baseDir, dir).replace(/^\/?/, '/').replace(/\/\$/, '/:')
+    this.filename = filename
+    this.verb = verb
+    this.methods = methods
+    this.depth = this.routerPath.split('/').length
+  }
+
+  addRoute(router) {
+    router[this.verb](this.routerPath, ...this.methods)
+  }
 }
 
-const customHandlers = {}
+// attributes -> { flags: { [key]: bool }, middleware: { [key]: function } }
+// all objects are flat
+async function walkDir(baseDir, dir, attributes) {
+  const dirDirents = await fs.readdir(dir, { withFileTypes: true })
+  let flags, fusedFlags
+  let middleware, fusedMiddleware
+  let subdirs = []
+  const handlers = []
 
-class Route extends Array {
-  constructor(options = {}) {
-    super()
+  for (let i = 0; i < dirDirents.length; i++) {
+    const dirent = dirDirents[i]
+    const type = direntType(dirent)
 
-    this[inlineConf] = options
-    this[resolvedConf] = {}
-    this[routeConfPrepped] = false
-  }
-
-  static set handlers(handlers = {}) {
-    for (const key in handlers) {
-      defaultOptions[key] = false
-      customHandlers[key] = handlers[key]
-    }
-  }
-
-  static set defaultOptions(options = {}) {
-    for (const key in options) {
-      defaultOptions[key] = options[key]
-    }
-  }
-
-  set resolvedConf(conf) {
-    this[resolvedConf] = conf
-  }
-
-  // handler must be already express wrapped
-  [applyCustomHandler](customHandler, handler, applyArgs) {
-    customHandler = this[wrapWithExpressNext].bind(this)(customHandler)
-
-    return (req, res, next) => {
-      customHandler(req, res, err => {
-        if (err) {
-          return next(err)
-        }
-
-        handler(req, res, next)
-      }, applyArgs)
-    }
-  }
-
-  // wraps async handlers with next()
-  [wrapWithExpressNext](handler) {
-    if (handler instanceof Promise) {
-      throw new ContentError('Express handlers need to be (req, res, next) or aysnc (req, res, next)')
-    }
-
-    if (handler.constructor.name !== 'AsyncFunction') {
-      return handler
-    }
-
-    return (req, res, nextOriginal) => {
-      // preventing double call on next()
-      let nextCalled = false
-      const next = (...args) => {
-        if (nextCalled === true) {
-          return
-        }
-        nextCalled = true
-
-        nextOriginal(...args)
-      }
-
-      // express can't take in a promise (async func), so have to proxy it
-      const handlerProxy = async callback => {
-        try {
-          await handler(req, res, callback)
-        } catch(err) {
-          callback(err)
-        }
-      }
-
-      handlerProxy(err => next(err))
-    }
-  }
-
-  confPrep() {
-    if (this[routeConfPrepped]) {
-      return
-    }
-    this[routeConfPrepped] = true
-
-    const optionsUsed = {
-      ...defaultOptions,
-      ...this[resolvedConf],
-      ...this[inlineConf]
-    }
-
-    this.wildcardRoute = optionsUsed.wildcard
-    this.cors = optionsUsed.cors
-
-    for (const handlerKey in customHandlers) {
-      this[handlerKey] = optionsUsed[handlerKey]
-    }
-
-    this.suppressedRoutes = false
-    for (const key in optionsUsed.blacklistedEnv) {
-      const envVar = process.env[key]
-      const blacklistedArray = optionsUsed.blacklistedEnv[key]
-
-      if (envVar && blacklistedArray.includes(envVar)) {
-        this.suppressedRoutes = true
+    switch (type) {
+      case 'dir':
+        subdirs.push(dirent.name)
         break
-      }
+
+      case 'handler':
+        handlers.push(dirent.name)
+        break
+
+      case 'flags':
+        flags = require(path.resolve(dir, dirent.name))
+        break
+
+      case 'middleware':
+        middleware = await walkMiddleware(path.resolve(dir, dirent.name))
+        break
     }
   }
 
-  expressRouterPrep() {
-    // placeholder
+  if (!handlers.length && !subdirs.length) {
+    return []
   }
 
-  expressRouter(verb, expressPath) {
-    this.confPrep()
-    this.expressRouterPrep()
+  if (flags) {
+    fusedFlags = { ...attributes.flags, ...flags }
+  }
 
-    const express = require('express')
-    const router = express.Router()
+  if (middleware) {
+    fusedMiddleware = { ...attributes.middleware, ...middleware }
+  }
 
-    if (this.suppressedRoutes === true) {
-      return router
+  if (subdirs) {
+    subdirs = subdirs.map(subdir => walkDir(
+      baseDir,
+      path.resolve(dir, subdir),
+      {
+        flags: fusedFlags || attributes.flags,
+        middleware: fusedMiddleware || attributes.middleware
+      }
+    ))
+  }
+
+  const routerDefs = []
+  for (let i = 0; i < handlers.length; i++) {
+    const verbMatch = handlers[i].match(preDotExpr)
+    const verb = verbMatch[0].toLowerCase()
+    routerDefs.push(
+      new RouterDefinition({
+        baseDir,
+        dir,
+        filename: handlers[i],
+        verb,
+        methods: routeMethods(require(path.resolve(dir, handlers[i])), fusedMiddleware || attributes.middleware, fusedFlags || attributes.flags)
+      })
+    )
+  }
+
+  subRouterDefs = await Promise.all(subdirs)
+  const results = [ ...routerDefs ]
+  for (let i = 0; i < subRouterDefs.length; i++) {
+    results.push(...subRouterDefs[i])
+  }
+  return results
+}
+
+function routeMethods(handler, middleware, flags) {
+  const fusedFlags = handler.middlewareFlags ? { ...flags, ...handler.middlewareFlags } : flags
+  const methods = []
+
+  const prep = (req, res, next) => {
+    req.__routeContext = { skip: false }
+    next()
+  }
+
+  methods.push(prep)
+
+  for (let key in fusedFlags) {
+    if (!fusedFlags[key]) {
+      continue
     }
 
-    const expressPathUsed = this.wildcardRoute ? expressPath.replace(/\/$/, '') + '*' : expressPath
-    const expressVerb = verb.toLowerCase()
+    if (!middleware[key]) {
+      continue
+    }
 
-    for (let handler of this) {
-      handler = this[wrapWithExpressNext].bind(this)(handler)
+    methods.push(wrappedRouteHandler(middleware[key], true))
+  }
 
-      for (const handlerKey in customHandlers) {
-        if (this[handlerKey]) {
-          handler = this[applyCustomHandler].bind(this)(customHandlers[handlerKey], handler, typeof this[handlerKey] === 'boolean' ? undefined : this[handlerKey])
-        }
+  methods.push(wrappedRouteHandler(handler, false))
+
+  return methods
+}
+
+function wrappedRouteHandler(handler, withSkip) {
+  const isAsync = handler.constructor.name === 'AsyncFunction'
+
+  return async (req, res, next) => {
+    if (req.__routeContext.skip) {
+      return next()
+    }
+
+    if (withSkip) {
+      const skipMethod = () => {
+        req.__routeContext.skip = true
+        next()
       }
 
-      if (this.cors) {
-        // see https://github.com/expressjs/cors#enabling-cors-pre-flight
-        router.options(expressPathUsed, cors(this.cors))
-        router[expressVerb](expressPathUsed, cors(this.cors), handler)
+      if (isAsync) {
+        await handler(req, res, next, skipMethod)
       } else {
-        router[expressVerb](expressPathUsed, handler)
+        handler(req, res, next, skipMethod)
+      }
+    } else {
+      if (isAsync) {
+        await handler(req, res, next)
+      } else {
+        handler(req, res, next)
       }
     }
-
-    return router
-  }
-
-  get copy() {
-    const copy = new Route()
-    copy.wildcardRoute = this.wildcard
-    copy.cors = this.cors
-    copy.suppressedRoutes = this.suppressedRoutes
-    copy.push(...this.slice())
-    return copy
   }
 }
 
-module.exports = Route
-module.exports.syncCrawl = syncCrawl
+async function walkMiddleware(dir) {
+  const dirDirents = await fs.readdir(dir, { withFileTypes: true })
+  const middleware = {}
+
+  for (let i = 0; i < dirDirents.length; i++) {
+    const dirent = dirDirents[i]
+
+    if (dirent.isFile() && jsExtensionExpr.test(dirent.name)) {
+      middleware[dirent.name.replace(jsExtensionExpr, '')] = require(path.resolve(dir, dirent.name))
+    }
+  }
+
+  return middleware
+}
+
+// can return undefined
+function direntType(dirent) {
+  if (dirent.isFile()) {
+    if (dirent.name === '.middleware.flags.js') {
+      return 'flags'
+    }
+    if (jsExtensionExpr.test(dirent.name)) {
+      const verbMatch = dirent.name.match(preDotExpr)
+      if (verbMatch && validHandlerVerbs.includes(verbMatch[0].toLowerCase())) {
+        return 'handler'
+      }
+    }
+  } else if (dirent.isDirectory()) {
+    if (dirent.name === '.middleware') {
+      return 'middleware'
+    }
+    return 'dir'
+  }
+}
+
+module.exports = async function walk(dir, existingRouter) {
+  const routerDefinitions = await walkDir(dir, dir, { flags: {}, middleware: {} })
+
+  routerDefinitions.sort((a, b) => {
+    // compare depths - deeper routes (more specific)
+    // will be mounted first
+    if (a.depth > b.depth) {
+      return -1
+    }
+    if (b.depth > a.depth) {
+      return 1
+    }
+
+    // comparing route paths
+    const pathComparison = a.routerPath.localeCompare(b.routerPath)
+    if (pathComparison !== 0) {
+      return pathComparison
+    }
+
+    // within same path - need to compare files themselves
+    // standard sort will keep `all` verbs at top
+    // (which we want)
+    return a.filename.localeCompare(b.filename)
+  })
+
+  // creating a top-level router to encompass the others
+  const router = existingRouter || express.Router()
+  for (let i = 0; i < routerDefinitions.length; i++) {
+    routerDefinitions[i].addRoute(router)
+  }
+
+  return router
+}
