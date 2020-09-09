@@ -11,7 +11,7 @@ class RouterDefinition {
     // adding to the tokens of the express route, based on the current directory being crawled
     // a folder starting with a $ will be considered a req param
     // (The : used in express does not work well in directory naming, and will mess up directory searching)
-    this.routerPath = path.relative(baseDir, dir).replace(/(^|\/)\$/, '$1:')
+    this.routerPath = path.relative(baseDir, dir).replace(/^\/?/, '/').replace(/\/\$/, '/:')
     this.filename = filename
     this.verb = verb
     this.methods = methods
@@ -88,7 +88,7 @@ async function walkDir(baseDir, dir, attributes) {
         dir,
         filename: handlers[i],
         verb,
-        methods: routeMethods(handlers[i], fusedMiddleware || attributes.middleware, fusedFlags || attributes.flags)
+        methods: routeMethods(require(path.resolve(dir, handlers[i])), fusedMiddleware || attributes.middleware, fusedFlags || attributes.flags)
       })
     )
   }
