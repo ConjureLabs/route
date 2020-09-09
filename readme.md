@@ -46,6 +46,7 @@ module.exports = (req, res, next) => {
 You can walk them, and mount them on your express server:
 
 ```js
+const walkRoutes = require('@conjurelabs/route')
 const routes = await walkRoutes(path.resolve(__dirname, 'routes'))
 const server = express()
 server.use(routes)
