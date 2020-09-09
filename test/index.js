@@ -28,3 +28,14 @@ test('should mount expected route handlers', async t => {
   res = await got.delete(`${url}/users/7150`)
   t.is(res.body, 'delete')
 })
+
+test('should chain multiple handlers of the same verb', async t => {
+  const routes = await walkRoutes(path.resolve(__dirname, 'mocks', 'chained-gets'))
+  const app = express()
+  app.use(routes)
+  const url = await listen(http.createServer(app))
+  let res
+
+  res = await got.get(url)
+  t.is(res.body, 'route')
+})
