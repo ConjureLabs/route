@@ -39,3 +39,29 @@ test('should chain multiple handlers of the same verb', async t => {
   res = await got.get(url)
   t.is(res.body, 'route')
 })
+
+test('should implement expected middleware', async t => {
+  const routes = await walkRoutes(path.resolve(__dirname, 'mocks', 'with-middleware'))
+  const app = express()
+  app.use(routes)
+  const url = await listen(http.createServer(app))
+  let res
+
+  res = await got.get(url)
+  t.is(res.body, 'fallback')
+
+  res = await got.get(`${url}/abc`)
+  t.is(res.body, 'thing2')
+
+  res = await got.get(`${url}/abc/jkl`)
+  t.is(res.body, 'thing1')
+
+  res = await got.get(`${url}/xyz`)
+  t.is(res.body, 'thing1')
+
+  res = await got.get(`${url}/xyz/jkl`)
+  t.is(res.body, 'thing2')
+
+  res = await got.get(`${url}/other`)
+  t.is(res.body, 'fallback')
+})
