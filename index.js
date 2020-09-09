@@ -137,9 +137,12 @@ function wrappedRouteHandler(handler, withSkip) {
       return next()
     }
 
-    const skipMethod = withSkip ? req => { req.__routeContext.skip = true } : undefined
+    if (withSkip) {
+      const skipMethod = () => {
+        req.__routeContext.skip = true
+        next()
+      }
 
-    if (skipMethod) {
       if (isAsync) {
         await handler(req, res, next, skipMethod)
       } else {

@@ -85,6 +85,10 @@ module.exports = {
 
 This will only implement the `requireLoggedIn` middleware.
 
+Middleware is prepended to the route handlers. Once a request passes through them, it will have no further effect.
+
+If you want to see examples, take a look at [the test mock directories](./test/mocks/)
+
 #### Route-Exported Middleware Flags
 
 If you need to set middleware flags on a specific route, you can do so:

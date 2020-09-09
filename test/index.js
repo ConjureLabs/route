@@ -65,3 +65,22 @@ test('should implement expected middleware', async t => {
   res = await got.get(`${url}/other`)
   t.is(res.body, 'fallback')
 })
+
+test('should allow skipping routes via middleware', async t => {
+  const routes = await walkRoutes(path.resolve(__dirname, 'mocks', 'middleware-skip'))
+  const app = express()
+  app.use(routes)
+  const url = await listen(http.createServer(app))
+  let res
+
+  res = await got.get(url)
+  t.is(res.body, 'hit')
+
+  let thrown
+  try {
+    res = await got.post(url)
+  } catch(err) {
+    thrown = err.message
+  }
+  t.is(thrown, 'Response code 404 (Not Found)')
+})
