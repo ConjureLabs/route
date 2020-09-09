@@ -51,6 +51,16 @@ const server = express()
 server.use(routes)
 ```
 
+### Filenames
+
+This library supports the following express verbs: `get`, `post`, `put`, `patch`, `delete`, and `all`.
+
+A file `get.js` will expose a `GET` route, with a path that matches the directory path.
+
+You can append anything after `get.` if you want to chain multiple handlers. E.g. `get.0.js`, `get.1.js`.
+
+Filenames are sorted before being exposed.
+
 ### Middleware
 
 You can add middleware methods in a `.middleware` directory. All neighbor routes will inherit these methods.
