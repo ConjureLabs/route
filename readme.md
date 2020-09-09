@@ -55,11 +55,11 @@ server.use(routes)
 
 This library supports the following express verbs: `get`, `post`, `put`, `patch`, `delete`, and `all`.
 
-A file `get.js` will expose a `GET` route, with a path that matches the directory path.
+A file `get.js` will expose a `GET` route.
 
 You can append anything after `get.` if you want to chain multiple handlers. E.g. `get.0.js`, `get.1.js`.
 
-Filenames are sorted before being exposed.
+Filenames are sorted before being exposed. Any verb the library does not recognize will be ignored.
 
 ### Middleware
 
