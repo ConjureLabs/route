@@ -33,9 +33,9 @@ Let's say you have your routes in a directory like:
         └── all.js
 ```
 
-Note that params are defined with a `$`, not a `:`. Colons cause issues when searching, in editors.
+Note that params are defined with a `$`, not a `:`. Colons cause issues when searching in editors.
 
-Each file just needs to export an express route handler, like:
+Each file just needs to export an express route handler:
 
 ```js
 module.exports = (req, res, next) => {
@@ -43,7 +43,15 @@ module.exports = (req, res, next) => {
 }
 ```
 
-You can walk them, and mount them on your express server:
+You can also export an array of handlers:
+
+```js
+const fn1 = (req, res, next) => { /* logic */ }
+const fn2 = (req, res, next) => { /* logic */ }
+module.exports = [fn1, fn2]
+```
+
+This library will automatically convert these exported functions into express route handlers. You will need to walk your route directory, and mount them on your express server:
 
 ```js
 const walkRoutes = require('@conjurelabs/route')
@@ -54,19 +62,19 @@ server.use(routes)
 
 ### Filenames
 
-This library supports the following express verbs: `get`, `post`, `put`, `patch`, `delete`, and `all`.
+This library supports the following express verbs: `get`, `post`, `put`, `patch`, `delete`, and `all`. Any verb the library does not recognize will be ignored.
 
 A file `get.js` will expose a `GET` route.
 
-You can append anything after `get.` if you want to chain multiple handlers. E.g. `get.0.js`, `get.1.js`.
-
-Filenames are sorted before being exposed. Any verb the library does not recognize will be ignored.
+You can append anything after `get.` if you want to chain multiple handlers. E.g. `get.0.js`, `get.1.js`. Filenames are sorted before being exposed, so `get.0.js` will be mounted first, on the given path.
 
 ### Middleware
 
-You can add middleware methods in a `.middleware` directory. All neighbor routes will inherit these methods.
+You can add middleware methods in a `.middleware` directory. All routes in that directory, or any sub-directory, will have access to these middleware functions.
 
-They are enabled on subroutes via a `.middleware.flags.js` file.
+They are disabled by default, and can be enabled for all files in the directory, and sub-directories, by providing a `.middleware.flags.js` file.
+
+Let's say you have the following structure:
 
 ```
 .
@@ -74,8 +82,8 @@ They are enabled on subroutes via a `.middleware.flags.js` file.
     ├── .middleware
     │   ├── requireLoggedIn.js
     │   └── appendSession.js
+    ├── .middleware.flags.js
     └── account
-        ├── .middleware.flags.js
         ├── $accountId
         │   ├── delete.js
         │   ├── get.js
@@ -85,7 +93,19 @@ They are enabled on subroutes via a `.middleware.flags.js` file.
         └── all.js
 ```
 
-In this example, if `.middleware.flags.js` is set to:
+Where middleware files look like:
+
+```js
+// routes/.middleware/requireLoggedIn.js
+module.exports = async (req, res, next) => {
+  if (!req.user) {
+    return next(new Error('Invalid auth'))
+  }
+  next()
+}
+```
+
+And we have a root `.middleware.flags.js` of:
 
 ```js
 module.exports = {
@@ -94,15 +114,15 @@ module.exports = {
 }
 ```
 
-This will only implement the `requireLoggedIn` middleware.
+This will only implement the `requireLoggedIn` middleware on all routes, by default. If you wanted to turn that off inside a specific sub-directory, you can add a `.middleware.flags.js` in that sub-directory.
 
-Middleware is prepended to the route handlers. Once a request passes through them, it will have no further effect.
+Middleware functions are run before route handlers.
 
 If you want to see examples, take a look at [the test mock directories](./test/mocks/)
 
 #### Route-Exported Middleware Flags
 
-If you need to set middleware flags on a specific route, you can do so:
+If you need to set middleware flags on a specific route, instead of a whole directory, you can do so:
 
 ```js
 module.exports = (req, res) => {
@@ -120,14 +140,19 @@ Flags are resolved bottom-up. Route-exported flags come first, then flags set in
 
 #### Middleware skipping
 
-If you want a middleware method to not call `next()`, but to skip over _all_ subroutes, you can call a fourth `skip` argument. This only supported in middleware methods.
+Sometimes you'll want to simply skip all the route handlers in a file or directory based on some condition. For example, you might have an API directory of debug routes that should only be available if you're in Development.
+
+Middleware methods get four args: `(req, res, next, skip)`. `skip` is a function that will skip over any handlers. So, in the example of debug routes, you could have a middleware function like this:
 
 ```js
-const requireLoggedIn = (req, res, next, skip) => {
-  if (!req.user.id) {
+// routes/.middleware/devOnly.js
+const { NODE_ENV } = process.env
+module.exports = (req, res, next, skip) => {
+  if (NODE_ENV !== 'development') {
     return skip()
   }
   next()
 }
-module.exports = requireLoggedIn
 ```
+
+Then, wherever you enable this middleware, the routes will only be available if `NODE_ENV === 'development'`, or else they will 404.
