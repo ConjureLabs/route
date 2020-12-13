@@ -124,7 +124,10 @@ function routeMethods(handler, middleware, flags) {
     methods.push(wrappedRouteHandler(middleware[key], true))
   }
 
-  methods.push(wrappedRouteHandler(handler, false))
+  const resultHandlers = Array.isArray(handler) ?
+    handler.map(individualHandler => wrappedRouteHandler(individualHandler, false)) :
+    [wrappedRouteHandler(handler, false)]
+  methods.push(...resultHandlers)
 
   return methods
 }
