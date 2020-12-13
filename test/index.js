@@ -95,3 +95,14 @@ test('a single route file should be able to export an array of handlers', async 
   res = await got.get(url)
   t.is(res.body, 'good')
 })
+
+test('a single middleware file should be able to export an array of handlers', async t => {
+  const routes = await walkRoutes(path.resolve(__dirname, 'mocks', 'middleware-array'))
+  const app = express()
+  app.use(routes)
+  const url = await listen(http.createServer(app))
+  let res
+
+  res = await got.get(url)
+  t.is(res.body, 'okay')
+})
