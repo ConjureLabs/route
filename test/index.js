@@ -86,7 +86,7 @@ test('should allow skipping routes via middleware', async t => {
 })
 
 test('a single route file should be able to export an array of handlers', async t => {
-  const routes = await walkRoutes(path.resolve(__dirname, 'mocks', 'exported-array'))
+  const routes = await walkRoutes(path.resolve(__dirname, 'mocks', 'handler-array'))
   const app = express()
   app.use(routes)
   const url = await listen(http.createServer(app))
