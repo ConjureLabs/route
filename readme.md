@@ -16,6 +16,8 @@ or
 yarn add @conjurelabs/route
 ```
 
+**!! This requires `express>=5`**, since earlier versions of Express don't work with `async` route handlers.
+
 ## Usage
 
 Let's say you have your routes in a directory like:
@@ -54,6 +56,7 @@ module.exports = [fn1, fn2]
 This library will automatically convert these exported functions into express route handlers. You will need to walk your route directory, and mount them on your express server:
 
 ```js
+const express = require('express')
 const walkRoutes = require('@conjurelabs/route')
 const routes = await walkRoutes(path.resolve(__dirname, 'routes'))
 const server = express()
