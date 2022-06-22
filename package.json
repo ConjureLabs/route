@@ -41,7 +41,7 @@
     "babel-eslint": "10.1.0",
     "eslint": "7.6.0",
     "express": "5.0.0-alpha.8",
-    "got": "11.6.1",
+    "got": "11.8.5",
     "test-listen": "1.1.0"
   }
 }
