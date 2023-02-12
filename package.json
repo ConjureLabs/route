@@ -37,11 +37,11 @@
     "express": ">=5"
   },
   "devDependencies": {
-    "ava": "3.12.1",
+    "ava": "5.2.0",
     "babel-eslint": "10.1.0",
     "eslint": "7.6.0",
     "express": "5.0.0-alpha.8",
-    "got": "11.8.5",
+    "got": "12.5.3",
     "test-listen": "1.1.0"
   }
 }
