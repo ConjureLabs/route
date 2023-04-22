@@ -1,3 +1,7 @@
+*This repo has been archived — https://github.com/tmarshall/soda is an active replacement*
+
+---
+
 [![CircleCI](https://circleci.com/gh/ConjureLabs/route/tree/master.svg?style=svg)](https://circleci.com/gh/ConjureLabs/route/tree/master)
 
 This library walks a directory and turns it into express routes.
